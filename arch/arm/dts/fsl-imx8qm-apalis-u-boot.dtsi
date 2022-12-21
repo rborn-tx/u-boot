@@ -2,6 +2,32 @@
 /*
  * Copyright 2019 Toradex AG
  */
+/ {
+	aliases {
+		usbhost1 = &usbh3;
+		usbgadget0 = &usbg1;
+	};
+
+	usbh3: usbh3 {
+		compatible = "Cadence,usb3-host";
+		dr_mode = "host";
+		cdns3,usb = <&usbotg3>;
+		status = "okay";
+	};
+
+	usbg1: usbg1 {
+		compatible = "fsl,imx27-usb-gadget";
+		dr_mode = "peripheral";
+		chipidea,usb = <&usbotg1>;
+		status = "okay";
+		bootph-some-ram;
+	};
+};
+
+&{/imx8qm-pm} {
+
+	bootph-some-ram;
+};
 
 / {
 	sysinfo {
@@ -81,6 +107,22 @@
 	bootph-some-ram;
 };
 
+&pd_conn_usbotg0 {
+	bootph-some-ram;
+};
+
+&pd_conn_usbotg0_phy {
+	bootph-some-ram;
+};
+
+&pd_conn_usb2 {
+	bootph-some-ram;
+};
+
+&pd_conn_usb2_phy {
+	bootph-some-ram;
+};
+
 &gpio0 {
 	bootph-some-ram;
 };
@@ -132,6 +174,32 @@
 };
 
 &lpuart3 {
+	bootph-some-ram;
+};
+
+/* USB */
+&usbmisc1 {
+	bootph-some-ram;
+};
+
+&usbphy1 {
+	bootph-some-ram;
+};
+
+&usbotg1 {
+	dr_mode = "host";
+	bootph-some-ram;
+};
+
+&usbphynop1 {
+	compatible = "cdns,usb3-phy";
+	reg = <0x0 0x5B160000 0x0 0x40000>;
+	#phy-cells = <0>;
+	bootph-some-ram;
+};
+
+&usbotg3 {
+	phys = <&usbphynop1>;
 	bootph-some-ram;
 };
 
