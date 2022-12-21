@@ -33,6 +33,7 @@
 	func(MMC, mmc, 1) \
 	func(MMC, mmc, 2) \
 	func(MMC, mmc, 0) \
+	func(USB, usb, 0) \
 	func(DHCP, dhcp, na)
 #include <config_distro_bootcmd.h>
 
@@ -59,5 +60,10 @@
 #define PHYS_SDRAM_2			0x880000000
 #define PHYS_SDRAM_1_SIZE		SZ_2G		/* 2 GB */
 #define PHYS_SDRAM_2_SIZE		SZ_2G		/* 2 GB */
+
+/* USB OTG controller configs */
+#ifdef CONFIG_USB_EHCI_HCD
+#define CFG_MXC_USB_PORTSC		(PORT_PTS_UTMI | PORT_PTS_PTW)
+#endif
 
 #endif /* __APALIS_IMX8_H */
