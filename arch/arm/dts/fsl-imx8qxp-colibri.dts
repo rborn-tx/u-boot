@@ -353,3 +353,18 @@
 	pinctrl-2 = <&pinctrl_usdhc2_200mhz>, <&pinctrl_usdhc2_gpio>;
 	status = "okay";
 };
+
+&usbotg1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usbc_det>;
+	adp-disable;
+	hnp-disable;
+	srp-disable;
+	disable-over-current;
+	status = "okay";
+};
+
+&usbotg3 {
+	vbus-supply = <&reg_usbh_vbus>;
+	status = "okay";
+};

@@ -18,10 +18,13 @@
 #include <env.h>
 #include <errno.h>
 #include <linux/libfdt.h>
+#include <usb.h>
 
 #include "../common/tdx-cfg-block.h"
 
 DECLARE_GLOBAL_DATA_PTR;
+
+static struct gpio_desc gpio_usb_cdet;
 
 #define UART_PAD_CTRL	((SC_PAD_CONFIG_OUT_IN << PADRING_CONFIG_SHIFT) | \
 			 (SC_PAD_ISO_OFF << PADRING_LPCONFIG_SHIFT) | \
@@ -38,6 +41,25 @@ static iomux_cfg_t uart3_pads[] = {
 static void setup_iomux_uart(void)
 {
 	imx8_iomux_setup_multiple_pads(uart3_pads, ARRAY_SIZE(uart3_pads));
+}
+
+int board_ci_udc_phy_mode(void *__iomem phy_base, int phy_off)
+{
+	int ret;
+
+	switch ((phys_addr_t)phy_base) {
+	case USB_BASE_ADDR:
+		if (!dm_gpio_is_valid(&gpio_usb_cdet))
+			return -ENODEV;
+
+		ret = dm_gpio_get_value(&gpio_usb_cdet);
+		if (ret < 0)
+			return ret;
+
+		return ret ? USB_INIT_DEVICE : USB_INIT_HOST;
+	default:
+		return USB_INIT_HOST;
+	}
 }
 
 static int is_imx8dx(void)
@@ -95,7 +117,14 @@ int board_early_init_f(void)
 #if IS_ENABLED(CONFIG_DM_GPIO)
 static void board_gpio_init(void)
 {
-	/* TODO */
+	if (dm_gpio_lookup_name("GPIO5_9", &gpio_usb_cdet))
+		return;
+
+	if (dm_gpio_request(&gpio_usb_cdet, "usb_c_det"))
+		return;
+
+	if (dm_gpio_set_dir_flags(&gpio_usb_cdet, GPIOD_IS_IN))
+		return;
 }
 #else
 static inline void board_gpio_init(void) {}

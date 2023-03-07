@@ -31,6 +31,7 @@
 #define BOOT_TARGET_DEVICES(func) \
 	func(MMC, mmc, 1) \
 	func(MMC, mmc, 0) \
+	func(USB, usb, 0) \
 	func(DHCP, dhcp, na)
 #include <config_distro_bootcmd.h>
 
@@ -71,5 +72,9 @@
 
 /* Generic Timer Definitions */
 #define COUNTER_FREQUENCY		8000000	/* 8MHz */
+
+/* USB Config */
+#define CONFIG_USBD_HS
+#define CONFIG_USB_MAX_CONTROLLER_COUNT 2
 
 #endif /* __COLIBRI_IMX8X_H */
