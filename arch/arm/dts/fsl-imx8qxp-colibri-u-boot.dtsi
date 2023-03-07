@@ -7,6 +7,32 @@
 	sysinfo {
 		compatible = "toradex,sysinfo";
 	};
+
+	aliases {
+		usbgadget0 = &usbg1;
+		usbhost1 = &usbh3;
+	};
+
+	reg_usbh_vbus: regulator-usbh-vbus {
+		status = "okay";
+		bootph-some-ram;
+	};
+
+	usbg1: usbg1 {
+		compatible = "fsl,imx27-usb-gadget";
+		chipidea,usb = <&usbotg1>;
+		dr_mode = "peripheral";
+		status = "okay";
+		bootph-some-ram;
+	};
+
+	usbh3: usbh3 {
+		compatible = "Cadence,usb3-host";
+		cdns3,usb = <&usbotg3>;
+		dr_mode = "host";
+		status = "okay";
+		bootph-some-ram;
+	};
 };
 
 &{/imx8qx-pm} {
@@ -78,6 +104,22 @@
 	bootph-some-ram;
 };
 
+&pd_conn_usbotg0 {
+	bootph-some-ram;
+};
+
+&pd_conn_usbotg0_phy {
+	bootph-some-ram;
+};
+
+&pd_conn_usb2 {
+	bootph-some-ram;
+};
+
+&pd_conn_usb2_phy {
+	bootph-some-ram;
+};
+
 &pd_conn_sdch0 {
 	bootph-some-ram;
 };
@@ -138,6 +180,30 @@
 };
 
 &lpuart3 {
+	bootph-some-ram;
+};
+
+&usbmisc1 {
+	bootph-some-ram;
+};
+
+&usbphy1 {
+	bootph-some-ram;
+};
+
+&usbotg1 {
+	bootph-some-ram;
+};
+
+&usbotg3 {
+	phys = <&usbphynop1>;
+	bootph-some-ram;
+};
+
+&usbphynop1 {
+	compatible = "cdns,usb3-phy";
+	#phy-cells = <0>;
+	reg = <0x0 0x5B160000 0x0 0x40000>;
 	bootph-some-ram;
 };
 
