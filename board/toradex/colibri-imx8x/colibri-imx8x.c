@@ -12,6 +12,7 @@
 #include <asm/arch/imx8-pins.h>
 #include <asm/arch/iomux.h>
 #include <asm/arch/sci/sci.h>
+#include <asm/arch/snvs_security_sc.h>
 #include <asm/arch/sys_proto.h>
 #include <asm/gpio.h>
 #include <asm/io.h>
@@ -167,6 +168,13 @@ static void select_dt_from_module_version(void)
 int board_init(void)
 {
 	board_gpio_init();
+
+	if (IS_ENABLED(CONFIG_IMX_SNVS_SEC_SC_AUTO)) {
+		int ret = snvs_security_sc_init();
+
+		if (ret)
+			return ret;
+	}
 
 	return 0;
 }
