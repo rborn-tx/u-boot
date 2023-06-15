@@ -57,9 +57,17 @@
 
 &gpio5 {
 	u-boot,dm-spl;
+
+	ctrl_sleep_moci {
+		u-boot,dm-spl;
+	};
 };
 
 &i2c1 {
+	u-boot,dm-spl;
+};
+
+&pinctrl_ctrl_sleep_moci {
 	u-boot,dm-spl;
 };
 
