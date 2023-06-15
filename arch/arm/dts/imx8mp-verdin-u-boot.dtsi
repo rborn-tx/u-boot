@@ -99,6 +99,10 @@
 
 &gpio4 {
 	u-boot,dm-spl;
+
+	ctrl_sleep_moci {
+		u-boot,dm-spl;
+	};
 };
 
 &gpio5 {
@@ -114,6 +118,10 @@
 };
 
 &i2c3 {
+	u-boot,dm-spl;
+};
+
+&pinctrl_ctrl_sleep_moci {
 	u-boot,dm-spl;
 };
 
