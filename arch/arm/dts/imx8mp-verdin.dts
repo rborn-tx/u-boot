@@ -88,7 +88,9 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_reg_eth>;
 	};
+};
 
+&gpio4 {
 	ctrl_sleep_moci {
 		gpio-hog;
 		/* Verdin CTRL_SLEEP_MOCI# (SODIMM 256) */
