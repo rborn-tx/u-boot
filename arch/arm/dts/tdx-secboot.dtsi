@@ -1,0 +1,20 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+/*
+ * Copyright 2023 Toradex
+ */
+
+#include <dt-bindings/secure-boot/cmd-categories.h>
+
+/ {
+	chosen {
+		toradex,secure-boot {
+			bootloader-commands {
+				allow-open = <CMD_CAT_ALL>;
+				allow-closed = <CMD_CAT_ALL_SAFE>;
+				// deny-open = <CMD_CAT_ALL_UNSAFE>;
+				// deny-closed = <CMD_CAT_ALL_UNSAFE>;
+				// needed = <CMD_CAT_NEEDED>;
+			};
+		};
+	};
+};
