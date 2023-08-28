@@ -504,3 +504,31 @@ source "lib/Kconfig"
 source "test/Kconfig"
 
 source "tools/Kconfig"
+
+config TDX_SECBOOT_HARDENING
+	bool "Toradex Secure Boot hardening"
+	select TDX_CMD_WHITELIST
+	help
+	  This causes the Secure Boot hardening features added by Toradex
+	  to be built into U-Boot, including:
+
+	  - Command white-listing.
+	  - Protection against execution of unsigned software by "bootm".
+	  - CLI access prevention (when device is closed).
+	  - Kernel command line protection.
+
+	  Whether these features are active or not will depend on the runtime
+	  configuration stored in the control DTB.
+
+config TDX_SECBOOT_HARDENING_DBG
+	bool "Toradex Secure Boot hardening debugging support"
+	depends on TDX_SECBOOT_HARDENING
+	default n
+	help
+	  Add some extra commands to help debug the U-Boot hardening changes
+	  made by Toradex. This should never be enabled in production!
+
+config TDX_CMD_WHITELIST
+	bool
+	help
+	  Enable the command white-listing feature provided by Toradex.

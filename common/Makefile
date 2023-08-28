@@ -22,6 +22,8 @@ obj-$(CONFIG_$(SPL_TPL_)OF_LIBFDT) += fdt_support.o
 obj-$(CONFIG_MII) += miiphyutil.o
 obj-$(CONFIG_CMD_MII) += miiphyutil.o
 obj-$(CONFIG_PHYLIB) += miiphyutil.o
+obj-$(CONFIG_TDX_SECBOOT_HARDENING) += tdx-harden.o
+obj-$(CONFIG_TDX_CMD_WHITELIST) += whitelist.o
 
 ifdef CONFIG_USB
 obj-y += usb.o usb_hub.o
