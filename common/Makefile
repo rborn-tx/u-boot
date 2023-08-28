@@ -24,6 +24,8 @@ obj-$(CONFIG_DISPLAY_BOARDINFO_LATE) += board_info.o
 obj-$(CONFIG_MII) += miiphyutil.o
 obj-$(CONFIG_CMD_MII) += miiphyutil.o
 obj-$(CONFIG_PHYLIB) += miiphyutil.o
+obj-$(CONFIG_TDX_SECBOOT_HARDENING) += tdx-harden.o
+obj-$(CONFIG_TDX_CMD_WHITELIST) += whitelist.o
 
 obj-$(CONFIG_USB_HOST) += usb.o usb_hub.o
 obj-$(CONFIG_USB_GADGET) += usb.o
