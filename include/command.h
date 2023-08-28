@@ -263,6 +263,7 @@ int do_rw(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[]);
 enum command_ret_t {
 	CMD_RET_SUCCESS,	/* 0 = Success */
 	CMD_RET_FAILURE,	/* 1 = Failure */
+	CMD_RET_BLOCKED = 126,	/* 126 = Blocked by whitelist feature */
 	CMD_RET_USAGE = -1,	/* Failure, please report 'usage' error */
 };
 
