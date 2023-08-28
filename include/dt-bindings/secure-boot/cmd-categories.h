@@ -1,0 +1,101 @@
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * This header provides constants for command categories used with the whitelist
+ * feature (Toradex hardened U-Boot).
+ */
+#ifndef _DT_BINDINGS_SECURE_BOOT_CMD_CATEGORIES_H
+#define _DT_BINDINGS_SECURE_BOOT_CMD_CATEGORIES_H
+
+#define CMD_CAT_NULL			0
+
+/* Pseudo categories. */
+#define CMD_CAT_ALL			10
+#define CMD_CAT_ALL_SAFE		11
+#define CMD_CAT_ALL_UNSAFE		12
+
+/* Normal categories. */
+#define CMD_CAT_AHAB_CONTROL		20
+#define CMD_CAT_AHAB_DIAG		21
+#define CMD_CAT_AHAB_AUTH		22
+#define CMD_CAT_AUXCORE			30
+#define CMD_CAT_BLKCACHE_CONTROL	40
+#define CMD_CAT_BLKCACHE_DIAG		41
+#define CMD_CAT_BMODE			44
+#define CMD_CAT_BOOTFLOW		45
+#define CMD_CAT_BOOTROM			50
+#define CMD_CAT_CFGBLOCK_DIAG		60
+#define CMD_CAT_CFGBLOCK_WRITE		61
+#define CMD_CAT_CLK_CONTROL		70
+#define CMD_CAT_CLK_DIAG		71
+#define CMD_CAT_DCACHE_CONTROL		80
+#define CMD_CAT_DEKBLOB			85
+#define CMD_CAT_DIAG			90
+#define CMD_CAT_DM_DIAG			100
+#define CMD_CAT_EXEC			110
+#define CMD_CAT_FASTBOOT		115
+#define CMD_CAT_FDT_CONTROL		120
+#define CMD_CAT_FDT_DIAG		121
+#define CMD_CAT_FLASH_CONTROL		125
+#define CMD_CAT_FLASH_DIAG		126
+#define CMD_CAT_FS_DIAG			130
+#define CMD_CAT_FS_READ			131
+#define CMD_CAT_FS_WRITE		132
+#define CMD_CAT_FUSE_READ		140
+#define CMD_CAT_FUSE_WRITE		141
+#define CMD_CAT_GADGETSDP		145
+#define CMD_CAT_GPT_DIAG		150
+#define CMD_CAT_GPT_READ		151
+#define CMD_CAT_GPT_WRITE		152
+#define CMD_CAT_GPIO_CONTROL		160
+#define CMD_CAT_GPIO_DIAG		161
+#define CMD_CAT_HAB_DIAG		170
+#define CMD_CAT_HAB_AUTH		171
+#define CMD_CAT_HAB_BOOTROM		172
+#define CMD_CAT_I2C_CONTROL		180
+#define CMD_CAT_I2C_DIAG		181
+#define CMD_CAT_I2C_READ		182
+#define CMD_CAT_I2C_WRITE		183
+#define CMD_CAT_ICACHE_CONTROL		190
+#define CMD_CAT_IMG_DIAG		200
+#define CMD_CAT_IMG_READ		201
+#define CMD_CAT_LED_CONTROL		210
+#define CMD_CAT_LED_DIAG		211
+#define CMD_CAT_MDIO_DIAG		220
+#define CMD_CAT_MDIO_READ		221
+#define CMD_CAT_MDIO_WRITE		222
+#define CMD_CAT_MEM_READ		230
+#define CMD_CAT_MEM_WRITE		231
+#define CMD_CAT_MEM_WRITE_SAFE		232
+#define CMD_CAT_MII_DIAG		240
+#define CMD_CAT_MII_READ		241
+#define CMD_CAT_MII_WRITE		242
+#define CMD_CAT_MMC_CONTROL		250
+#define CMD_CAT_MMC_DIAG		251
+#define CMD_CAT_MMC_READ		252
+#define CMD_CAT_MMC_WRITE		253
+#define CMD_CAT_NET_DIAG		260
+#define CMD_CAT_PART_DIAG		270
+#define CMD_CAT_PART_READ		271
+#define CMD_CAT_PINMUX_DIAG		280
+#define CMD_CAT_PMIC_DIAG		290
+#define CMD_CAT_PMIC_READ		291
+#define CMD_CAT_PMIC_WRITE		292
+#define CMD_CAT_REGULATOR_CONTROL	300
+#define CMD_CAT_REGULATOR_DIAG		301
+#define CMD_CAT_SCU_PART		310
+#define CMD_CAT_SER_LOAD		320
+#define CMD_CAT_SETEXPR			330
+#define CMD_CAT_SNVS_CONTROL		341
+#define CMD_CAT_SNVS_DIAG		340
+#define CMD_CAT_TDX_AUTOSEL_DT		350
+#define CMD_CAT_UMS_CONTROL		360
+#define CMD_CAT_USB_CONTROL		370
+#define CMD_CAT_USB_DIAG		380
+#define CMD_CAT_USB_READ		381
+#define CMD_CAT_USB_WRITE		382
+#define CMD_CAT_WHITELIST		390
+
+#define CMD_CAT_NEEDED			1000	/* Special: commands needed for booting. */
+#define CMD_CAT_SAFE			1001	/* Special: commands considered safe. */
+
+#endif
