@@ -259,6 +259,7 @@ int setexpr_regex_sub(char *data, uint data_size, char *nbuf, uint nbuf_size,
 enum command_ret_t {
 	CMD_RET_SUCCESS,	/* 0 = Success */
 	CMD_RET_FAILURE,	/* 1 = Failure */
+	CMD_RET_BLOCKED = 126,	/* 126 = Blocked by whitelist feature */
 	CMD_RET_USAGE = -1,	/* Failure, please report 'usage' error */
 };
 

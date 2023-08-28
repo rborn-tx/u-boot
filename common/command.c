@@ -18,6 +18,7 @@
 #include <mapmem.h>
 #include <asm/global_data.h>
 #include <linux/ctype.h>
+#include <tdx-harden.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -578,6 +579,10 @@ static int cmd_call(struct cmd_tbl *cmdtp, int flag, int argc,
 {
 	int result;
 
+#ifdef CONFIG_TDX_CMD_WHITELIST
+	if (!cmd_allowed_by_whitelist(cmdtp, argc, argv))
+		return CMD_RET_BLOCKED;
+#endif
 	result = cmdtp->cmd_rep(cmdtp, flag, argc, argv, repeatable);
 	if (result)
 		debug("Command failed, result=%d\n", result);
