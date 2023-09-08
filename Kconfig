@@ -508,6 +508,7 @@ source "tools/Kconfig"
 config TDX_SECBOOT_HARDENING
 	bool "Toradex Secure Boot hardening"
 	select TDX_CMD_WHITELIST
+	select TDX_BOOTM_PROTECTION
 	help
 	  This causes the Secure Boot hardening features added by Toradex
 	  to be built into U-Boot, including:
@@ -532,3 +533,9 @@ config TDX_CMD_WHITELIST
 	bool
 	help
 	  Enable the command white-listing feature provided by Toradex.
+
+config TDX_BOOTM_PROTECTION
+	bool
+	help
+	  Enable the protection in bootm to prevent execution of unsigned
+	  images.

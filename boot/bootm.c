@@ -32,6 +32,7 @@
 #include <command.h>
 #include <bootm.h>
 #include <image.h>
+#include <tdx-harden.h>
 
 #ifndef CONFIG_SYS_BOOTM_LEN
 /* use 8MByte as default max gunzip size */
@@ -77,7 +78,29 @@ static int bootm_start(struct cmd_tbl *cmdtp, int flag, int argc,
 		       char *const argv[])
 {
 	memset((void *)&images, 0, sizeof(images));
+
+#if CONFIG_IS_ENABLED(TDX_BOOTM_PROTECTION)
+	/*
+	 * When the "bootm" protection is enabled at build-time, FIT signature
+	 * verification is supposed to follow the status of the hardening. For
+	 * this, we assume CONFIG_FIT_SIGNATURE is set and here we set the
+	 * value of the "verify" field to match the status of the hardening.
+	 * With this we have:
+	 *
+	 * - If hardening is enabled => validate/enforce correct signature.
+	 * - If hardening is disabled => do not check signature.
+	 *
+	 * The logic above should be appropriate for allowing a bootloader
+	 * binary to be altered between non-secure and secure modes. Notice
+	 * that when this "bootm" protection is enabled the environment
+	 * variable "verify" is no longer used at the moment.
+	 *
+	 * TODO: Consider adding "verify" as part of the logic.
+	 */
+	images.verify = tdx_hardening_enabled();
+#else
 	images.verify = env_get_yesno("verify");
+#endif
 
 	boot_start_lmb(&images);
 
@@ -855,6 +878,7 @@ static const void *boot_get_kernel(struct cmd_tbl *cmdtp, int flag, int argc,
 	image_header_t	*hdr;
 #endif
 	ulong		img_addr;
+	int		fmt;
 	const void *buf;
 	const char	*fit_uname_config = NULL;
 	const char	*fit_uname_kernel = NULL;
@@ -871,7 +895,46 @@ static const void *boot_get_kernel(struct cmd_tbl *cmdtp, int flag, int argc,
 	/* check image type, for FIT images get FIT kernel node */
 	*os_data = *os_len = 0;
 	buf = map_sysmem(img_addr, 0);
-	switch (genimg_get_format(buf)) {
+	fmt = genimg_get_format(buf);
+
+#if CONFIG_IS_ENABLED(TDX_BOOTM_PROTECTION)
+	if (tdx_hardening_enabled()) {
+		/* hardening enabled at runtime. */
+		if (fmt != IMAGE_FORMAT_FIT) {
+			/* accept FIT images only. */
+			puts("ERROR: can't boot from non-FIT images with "
+			     "hardening enabled.\n");
+			return NULL;
+		}
+
+		/*
+		 * For TorizonCore we expect a configuration to be always passed
+		 * by the boot script; at the CLI level this means the usage
+		 * syntax would be this one:
+		 *
+		 * bootm [<addr1>]#<conf>[#<extra-conf[#...]]
+		 *
+		 * Since one can easily bypass the signature checks by directly
+		 * specifying the kernel/ramdisk/fdt, here we enforce the above
+		 * usage where a <conf> name is passed in which case the
+		 * signature validation is performed for the configuration
+		 * (which then covers the images). This is done by requiring
+		 * 'fit_uname_config' to be non-null. As an extra caution, we
+		 * also enforce variable 'fit_uname_kernel' not to be null to
+		 * prevent the use where a kernel image is specified directly,
+		 * i.e. not via a configuration.
+		 *
+		 */
+		if ((argc != 1) ||
+		    (fit_uname_config == NULL) || (fit_uname_kernel != NULL)) {
+			puts("ERROR: bootm only accepts booting from a "
+			     "configuration when hardening is enabled.\n");
+			return NULL;
+		}
+	}
+#endif
+
+	switch (fmt) {
 #if CONFIG_IS_ENABLED(LEGACY_IMAGE_FORMAT)
 	case IMAGE_FORMAT_LEGACY:
 		printf("## Booting kernel from Legacy Image at %08lx ...\n",
