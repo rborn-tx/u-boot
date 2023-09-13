@@ -17,6 +17,7 @@
 #include <net.h>
 #include <version_string.h>
 #include <efi_loader.h>
+#include <tdx-harden.h>
 
 static void run_preboot_environment_command(void)
 {
@@ -58,6 +59,10 @@ void main_loop(void)
 		efi_launch_capsules();
 
 	s = bootdelay_process();
+#if CONFIG_IS_ENABLED(TDX_CLI_PROTECTION)
+	if (!tdx_cli_access_enabled())
+		tdx_secure_boot_cmd(s); 	/* no return */
+#endif
 	if (cli_process_fdt(&s))
 		cli_secure_boot_cmd(s);
 
