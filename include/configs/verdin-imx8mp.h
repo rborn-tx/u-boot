@@ -79,7 +79,6 @@
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	BOOTENV \
 	MEM_LAYOUT_ENV_SETTINGS \
-	"bootcmd_mfg=fastboot 0\0" \
 	"boot_file=Image\0" \
 	"boot_scripts=" BOOT_SCRIPT "\0" \
 	"boot_script_dhcp=" BOOT_SCRIPT "\0" \
