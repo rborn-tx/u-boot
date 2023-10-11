@@ -33,6 +33,10 @@
 #include <asm/mach-imx/imx_vservice.h>
 #include <usb/ci_udc.h>
 
+#ifndef CONFIG_SYS_MMC_ENV_DEV
+#define CONFIG_SYS_MMC_ENV_DEV 0
+#endif
+
 DECLARE_GLOBAL_DATA_PTR;
 
 #define BT_PASSOVER_TAG	0x504F
