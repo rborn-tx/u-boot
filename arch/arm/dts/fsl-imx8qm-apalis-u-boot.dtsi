@@ -181,6 +181,7 @@
 };
 
 &usbotg1 {
+	dr_mode = "host";
 	u-boot,dm-pre-proper;
 };
 
