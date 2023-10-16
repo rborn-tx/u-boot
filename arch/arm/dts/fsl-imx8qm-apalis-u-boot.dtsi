@@ -187,6 +187,7 @@
 };
 
 &usbotg1 {
+	dr_mode = "host";
 	bootph-some-ram;
 };
 
