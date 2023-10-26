@@ -27,6 +27,10 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#ifdef CONFIG_TDX_BOOTARGS_PROTECTION
+#include <tdx-harden.h>
+#endif
+
 /**
  * fdt_getprop_u32_default_node - Return a node's property or a default
  *
@@ -313,6 +317,22 @@ int fdt_chosen(void *fdt)
 	}
 
 	str = board_fdt_chosen_bootargs();
+
+#ifdef CONFIG_TDX_BOOTARGS_PROTECTION
+	if (tdx_hardening_enabled()) {
+		if (tdx_valid_bootargs(fdt, str)) {
+			printf("## Validation of bootargs succeeded.\n");
+		} else if (tdx_secboot_dev_is_open()) {
+			eprintf("## WARNING: Allowing boot while device is "
+				"open; please fix bootargs before closing "
+				"device.\n");
+		} else {
+			eprintf("## FATAL: Stopping boot process due to "
+				"bootargs validation error.\n");
+			return -FDT_ERR_BADVALUE;
+		}
+	}
+#endif
 
 	if (str) {
 		err = fdt_setprop(fdt, nodeoffset, "bootargs", str,
