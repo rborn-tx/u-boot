@@ -510,6 +510,7 @@ config TDX_SECBOOT_HARDENING
 	select TDX_CMD_WHITELIST
 	select TDX_BOOTM_PROTECTION
 	select TDX_CLI_PROTECTION
+	select TDX_BOOTARGS_PROTECTION
 	help
 	  This causes the Secure Boot hardening features added by Toradex
 	  to be built into U-Boot, including:
@@ -546,3 +547,12 @@ config TDX_CLI_PROTECTION
 	help
 	  Enable the protection where the CLI is disabled when the device
 	  is in closed state.
+
+config TDX_BOOTARGS_PROTECTION
+	bool
+	help
+	  Enable the protection for the kernel command line (bootargs); with
+	  this feature, U-Boot will check the "bootargs" environment variable
+	  against information in the device-tree provided to the bootm
+	  command. Since the device-tree is supposed to come from a signed
+	  FIT image, it is expected to be a trustworthy source of information.
