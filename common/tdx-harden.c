@@ -3,12 +3,18 @@
  * Copyright 2023 Toradex
  */
 
+/* To see messages, also set CONFIG_LOG_MAX_LEVEL=8 and CONFIG_LOG_LEVEL=8. */
+/* #define DEBUG */
+/* #define LOG_DEBUG */
+
 #include <common.h>
 #include <compiler.h>
 #include <command.h>
 #include <console.h>
 #include <log.h>
 #include <fdt_support.h>
+#include <linux/ctype.h>
+#include <linux/string.h>
 #include <asm/global_data.h>
 #include <tdx-harden.h>
 
@@ -40,6 +46,33 @@ enum dbg_hdn_status_t {
 
 enum dbg_hab_status_t dbg_hab_status = DBG_HAB_STATUS_AUTO;
 enum dbg_hdn_status_t dbg_hdn_status = DBG_HDN_STATUS_AUTO;
+#endif
+
+#ifdef CONFIG_TDX_BOOTARGS_PROTECTION
+/* Path of node in OS FDT containing all bootargs properties. */
+static const char bootargs_node_path[] = TDX_BOOTARGS_NODE_PATH;
+
+enum bootarg_param_type_t {
+	BPARAM_NONE,
+	BPARAM_INTEGER,
+	BPARAM_OSTREE_PATH,
+};
+
+struct bootarg_spec_t {
+	const char *param;
+	enum bootarg_param_type_t type;
+};
+
+static const struct bootarg_spec_t bootarg_spec[] = {
+	{ "ostree=", BPARAM_OSTREE_PATH },
+#if 0
+	/* Examples */
+	{ "loglevel=", BPARAM_INTEGER },
+	{ "nowb", BPARAM_NONE },
+#endif
+};
+
+#define BOOTARG_SPEC_LEN (sizeof(bootarg_spec) / sizeof(bootarg_spec[0]))
 #endif
 
 static int _tdx_hardening_enabled(void)
@@ -207,6 +240,170 @@ void tdx_secure_boot_cmd(const char *cmd)
 
 	panic("## ERROR: \"%s\" returned (code %d) and CLI access is "
 	      "disabled\n", cmd, rc);
+}
+#endif
+
+#ifdef CONFIG_TDX_BOOTARGS_PROTECTION
+/**
+ * _tdx_valid_var_bootargs - Check single argument in bootargs
+ *
+ * TODO: Add support for quoted strings.
+ */
+static int _tdx_valid_var_bootarg(const char *value,
+				  enum bootarg_param_type_t type,
+				  const char **eptr)
+{
+	const char *valp = value;
+
+	debug("check value '%.10s...' against type=%d\n", value, (int) type);
+
+	switch (type) {
+	case BPARAM_NONE:
+		break;
+	case BPARAM_INTEGER: {
+		while (isdigit(*valp))
+			valp++;
+		if (valp == value)
+			return 0;
+		break;
+	}
+	case BPARAM_OSTREE_PATH: {
+		/* Accept only a limited set of characters. */
+		while (isalnum(*valp) || *valp == '/' || *valp == '.')
+			valp++;
+		if (valp == value)
+			return 0;
+		break;
+	}
+	default:
+		printf("Unhandled bootarg param type %d\n", (int) type);
+		return 0;
+	}
+
+	/* Ensure argument is finished by space or NUL. */
+	if (*valp == '\0' || isspace(*valp)) {
+		if (eptr)
+			*eptr = valp;
+		return 1;
+	}
+
+	return 0;
+}
+
+/**
+ * _tdx_valid_var_bootargs - Check the variable part of bootargs
+ */
+static int _tdx_valid_var_bootargs(const char *bootargs)
+{
+	const char *args = bootargs, *value = NULL, *eptr;
+
+	while (*args) {
+		int bi;
+		for (bi = 0; bi < BOOTARG_SPEC_LEN; bi++) {
+			int plen = strlen(bootarg_spec[bi].param);
+			if (!strncmp(args, bootarg_spec[bi].param, plen)) {
+				debug("arg '%s'\n", bootarg_spec[bi].param);
+				value = &args[plen];
+				break;
+			}
+		}
+		if (bi >= BOOTARG_SPEC_LEN) {
+			printf("## Unexpected argument in bootargs: "
+			       "%.16s...\n", args);
+			return 0;
+		}
+
+		if (!_tdx_valid_var_bootarg(value, bootarg_spec[bi].type, &eptr)) {
+			printf("## Argument validation failed for bootarg "
+			       "%.16s...\n", args);
+			return 0;
+		}
+
+		args = eptr;
+		args = skip_spaces(args);
+	}
+
+	return 1;
+}
+
+/**
+ * tdx_valid_bootargs - Check if bootargs string is valid
+ * Return: 1 if valid or 0 otherwise.
+ *
+ * Check bootargs string against information in FDT (the one passed to the OS);
+ * the FDT is expected to contain a copy of the initial part of the kernel
+ * command line (specifically the part that can be determined at build-time).
+ */
+int tdx_valid_bootargs(void *fdt, const char *bootargs)
+{
+	static const char req_prop[] = "required-bootargs";
+	const char *req_args = NULL;
+	const char *args = bootargs;
+	int req_len = 0;
+	int node_offset;
+
+	node_offset = fdt_path_offset(fdt, bootargs_node_path);
+	if (node_offset < 0) {
+		printf("## WARNING: Required node \"%s\" could not be found "
+		       "in device-tree.\n", bootargs_node_path);
+		return 0;
+	}
+
+	req_args = fdt_getprop(fdt, node_offset, req_prop, &req_len);
+	if (!req_args) {
+		printf("## WARNING: Required property \"%s/%s\" could not be "
+		       "found in device-tree.\n", bootargs_node_path, req_prop);
+		return 0;
+	}
+
+	debug("** bootargs(env)=\"%s\"\n", bootargs);
+	debug("** bootargs(fdt)=\"%.*s\" [L=%d]\n", req_len, req_args, req_len);
+
+	/* Strings should be NUL-terminated but let us be careful. */
+	req_len = strnlen(req_args, req_len);
+
+	/* First part of bootargs must match required property in FDT. */
+	if (req_len) {
+		args = skip_spaces(args);
+		debug("check 1st part:\n A: \"%.*s\"\n B: \"%.*s\"\n",
+		      req_len, args, req_len, req_args);
+		if (strncmp(args, req_args, req_len)) {
+			debug("req_args comparison failed\n");
+			goto fixpart_invalid;
+		}
+		args += req_len;
+	}
+
+	/* Second part (if any) is variable. */
+	if (*args) {
+		if (req_len && !isspace(*args)) {
+			debug("no space before variable args\n");
+			goto fixpart_invalid;
+		}
+		args = skip_spaces(args);
+	}
+
+	debug("variable part to validate: \"%s\"\n", args);
+	if (!_tdx_valid_var_bootargs(args))
+		goto varpart_invalid;
+
+	return 1;
+
+fixpart_invalid:
+	printf("## WARNING: Initial part of passed bootargs string (A) does "
+	       "not match '%s' property (B) in device-tree.\n", req_prop);
+	printf("##  A: \"%s\"\n", skip_spaces(bootargs));
+	printf("##  B: \"%.*s\"\n", req_len, req_args);
+	return 0;
+
+varpart_invalid:
+	printf("## WARNING: Validation of the variable part of bootargs "
+	       "failed; the full bootargs string (A) and its fixed part "
+	       "(as defined in the '%s' property inside the device-tree) "
+	       "follow:\n", req_prop);
+	printf("##  A: \"%s\"\n", skip_spaces(bootargs));
+	printf("##  B: \"%.*s\"\n", req_len, req_args);
+	return 0;
 }
 #endif
 
