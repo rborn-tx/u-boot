@@ -26,19 +26,24 @@
  * };
  */
 
-/* Path of node in FDT containing all Secure Boot setup. */
+/* Path of node in control FDT containing all Secure Boot setup. */
 #define TDX_SECBOOT_NODE_PATH \
         "/chosen/toradex,secure-boot"
 
-/* Path of node in FDT containing command whitelist/blacklist. */
+/* Path of node in control FDT containing command whitelist/blacklist. */
 #define TDX_BOOTLDR_CMDS_NODE_PATH \
         "/chosen/toradex,secure-boot/bootloader-commands"
+
+/* Path of node in OS FDT containing all bootargs properties. */
+#define TDX_BOOTARGS_NODE_PATH \
+        "/chosen/toradex,secure-boot"
 
 struct cmd_tbl;
 
 int cmd_allowed_by_whitelist(struct cmd_tbl *cmd, int argc, char *const argv[]);
 int tdx_cli_access_enabled(void);
 void tdx_secure_boot_cmd(const char *cmd);
+int tdx_valid_bootargs(void *fdt, const char *bootargs);
 
 #ifdef CONFIG_TDX_SECBOOT_HARDENING
 int tdx_hardening_enabled(void);
