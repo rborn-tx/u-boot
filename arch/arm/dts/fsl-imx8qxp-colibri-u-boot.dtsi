@@ -128,6 +128,21 @@
 	u-boot,dm-pre-proper;
 };
 
+&gpio_expander_43 {
+	usb-bypass-n-hog {
+		gpio-hog;
+		gpios = <5 GPIO_ACTIVE_LOW>;
+		line-name = "usb-bypass-n";
+		output-high;
+	};
+	usb-reset-n-hog {
+		gpio-hog;
+		gpios = <4 GPIO_ACTIVE_LOW>;
+		line-name = "usb-reset-n";
+		output-low;
+	};
+};
+
 &gpio0 {
 	u-boot,dm-pre-proper;
 };
