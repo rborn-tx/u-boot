@@ -186,7 +186,6 @@ int caam_hash(const unsigned char *pbuf, unsigned int buf_len,
 	uint32_t *desc;
 	unsigned int size;
 
-	debug("\ncaam hash\n");
 	desc = malloc_cache_aligned(sizeof(int) * MAX_CAAM_DESCSIZE);
 	if (!desc) {
 		debug("Not enough memory for descriptor allocation\n");
