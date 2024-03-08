@@ -98,6 +98,7 @@ enum {
 	VERDIN_IMX8MPQ_8GB_WIFI_BT_IT = 70, /* 70 */
 	/* 71-85 */
 	VERDIN_IMX8MMDL_2G_IT = 86,
+	VERDIN_IMX8MMQ_2G_IT_NO_CAN,
 };
 
 enum {
