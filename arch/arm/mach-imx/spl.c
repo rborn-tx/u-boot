@@ -352,7 +352,8 @@ int dram_init_banksize(void)
 }
 #endif
 
-#if IS_ENABLED(CONFIG_SPL_LOAD_FIT)
+#if IS_ENABLED(CONFIG_SPL_LOAD_FIT) && IS_ENABLED(CONFIG_IMX_HAB) && \
+	!IS_ENABLED(CONFIG_SPL_FIT_SIGNATURE)
 static int spl_verify_fit_hash(const void *fit)
 {
 	unsigned long size;
