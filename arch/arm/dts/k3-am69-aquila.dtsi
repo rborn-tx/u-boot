@@ -1,0 +1,178 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+/*
+ * Copyright 2024 Toradex
+ *
+ * Common dtsi for Toradex Aquila AM69 SoM
+ *
+ * https://www.toradex.com/computer-on-modules/aquila-arm-family/ti-am69
+ */
+
+#include <dt-bindings/net/ti-dp83867.h>
+#include <dt-bindings/gpio/gpio.h>
+#include "k3-j784s4.dtsi"
+
+#define RUNNING_ON_AM69SK
+
+/ {
+	chosen {
+		stdout-path = "serial2:115200n8";
+	};
+
+	aliases {
+		mmc0 = &main_sdhci0;
+		mmc1 = &main_sdhci1;
+		serial2 = &main_uart8;
+	};
+
+	memory@80000000 {
+		device_type = "memory";
+		/* 32G RAM */
+		reg = <0x00 0x80000000 0x00 0x80000000>,
+		      <0x08 0x80000000 0x07 0x80000000>;
+		bootph-pre-ram;
+	};
+
+	reserved_memory: reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		/* global cma region */
+		linux,cma {
+			compatible = "shared-dma-pool";
+			reusable;
+			size = <0x00 0x70000000>;
+			linux,cma-default;
+		};
+
+		secure_ddr: optee@9e800000 {
+			reg = <0x00 0x9e800000 0x00 0x01800000>;
+			no-map;
+		};
+	};
+
+	reg_sdhc1_vmmc: regulator-sdhci1 {
+		compatible = "regulator-fixed";
+		enable-active-high;
+		off-on-delay-us = <100000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-min-microvolt = <3300000>;
+		regulator-name = "+3V3_SD";
+		startup-delay-us = <5000>;
+	};
+};
+
+&main_pmx0 {
+	/* Aquila SD_1 */
+	pinctrl_main_mmc1: main-mmc1-default-pins {
+		pinctrl-single,pins = <
+			J784S4_IOPAD(0x104, PIN_INPUT, 0) /* (AB38) MMC1_CLK  */ /* AQUILA A6 */
+			J784S4_IOPAD(0x108, PIN_INPUT, 0) /* (AB36) MMC1_CMD  */ /* AQUILA A4 */
+			J784S4_IOPAD(0x0fc, PIN_INPUT, 0) /* (AA33) MMC1_DAT0 */ /* AQUILA A8 */
+			J784S4_IOPAD(0x0f8, PIN_INPUT, 0) /* (AB34) MMC1_DAT1 */ /* AQUILA A9 */
+			J784S4_IOPAD(0x0f4, PIN_INPUT, 0) /* (AA32) MMC1_DAT2 */ /* AQUILA A1 */
+			J784S4_IOPAD(0x0f0, PIN_INPUT, 0) /* (AC38) MMC1_DAT3 */ /* AQUILA A3 */
+			J784S4_IOPAD(0x0e8, PIN_INPUT, 8) /* (AR38) TIMER_IO0.MMC1_SDCD */ /* AQUILA A10 */
+		>;
+	};
+
+	/* Aquila UART_3, used as the Linux console */
+	pinctrl_main_uart8: main-uart8-default-pins {
+		pinctrl-single,pins = <
+#ifdef RUNNING_ON_AM69SK
+
+			J784S4_IOPAD(0x0d0, PIN_INPUT, 11) /* (AP38) SPI0_CS1.UART8_RXD */
+			J784S4_IOPAD(0x0d4, PIN_OUTPUT, 11) /* (AN38) SPI0_CLK.UART8_TXD */
+#else
+			J784S4_IOPAD(0x038, PIN_INPUT, 11)  /* (AK35) MCASP0_ACLKX.UART8_RXD */ /* AQUILA D22 */
+			J784S4_IOPAD(0x03c, PIN_OUTPUT, 11) /* (AK38) MCASP0_AFSX.UART8_TXD  */ /* AQUILA D23 */
+#endif
+		>;
+	};
+};
+
+&main_gpio0 {
+	status = "okay";
+};
+
+/* On-module eMMC */
+&main_sdhci0 {
+	disable-wp;
+	no-mmc-hs400; /* TODO: verify the actual status, copied from TI SK AM69 */
+	non-removable;
+	ti,driver-strength-ohm = <50>;
+	status = "okay";
+};
+
+/* Aquila SD_1 */
+&main_sdhci1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_main_mmc1>;
+	disable-wp;
+	vmmc-supply = <&reg_sdhc1_vmmc>;
+	ti,driver-strength-ohm = <50>;
+	status = "disabled";
+};
+
+/* Aquila UART_3, used as the Linux console */
+&main_uart8 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_main_uart8>;
+	status = "disabled";
+};
+
+#ifdef RUNNING_ON_AM69SK
+/ {
+	aliases {
+		ethernet0 = &mcu_cpsw_port1;
+	};
+};
+
+&wkup_pmx2 {
+	mcu_cpsw_pins_default: mcu-cpsw-pins-default {
+		pinctrl-single,pins = <
+			J784S4_WKUP_IOPAD(0x02c, PIN_INPUT, 0) /* (A35) MCU_RGMII1_RD0 */
+			J784S4_WKUP_IOPAD(0x028, PIN_INPUT, 0) /* (B36) MCU_RGMII1_RD1 */
+			J784S4_WKUP_IOPAD(0x024, PIN_INPUT, 0) /* (C36) MCU_RGMII1_RD2 */
+			J784S4_WKUP_IOPAD(0x020, PIN_INPUT, 0) /* (D36) MCU_RGMII1_RD3 */
+			J784S4_WKUP_IOPAD(0x01c, PIN_INPUT, 0) /* (B37) MCU_RGMII1_RXC */
+			J784S4_WKUP_IOPAD(0x004, PIN_INPUT, 0) /* (C37) MCU_RGMII1_RX_CTL */
+			J784S4_WKUP_IOPAD(0x014, PIN_OUTPUT, 0) /* (D37) MCU_RGMII1_TD0 */
+			J784S4_WKUP_IOPAD(0x010, PIN_OUTPUT, 0) /* (D38) MCU_RGMII1_TD1 */
+			J784S4_WKUP_IOPAD(0x00c, PIN_OUTPUT, 0) /* (E37) MCU_RGMII1_TD2 */
+			J784S4_WKUP_IOPAD(0x008, PIN_OUTPUT, 0) /* (E38) MCU_RGMII1_TD3 */
+			J784S4_WKUP_IOPAD(0x018, PIN_OUTPUT, 0) /* (E36) MCU_RGMII1_TXC */
+			J784S4_WKUP_IOPAD(0x000, PIN_OUTPUT, 0) /* (C38) MCU_RGMII1_TX_CTL */
+		>;
+	};
+
+	mcu_mdio_pins_default: mcu-mdio-pins-default {
+		pinctrl-single,pins = <
+			J784S4_WKUP_IOPAD(0x034, PIN_OUTPUT, 0) /* (A36) MCU_MDIO0_MDC */
+			J784S4_WKUP_IOPAD(0x030, PIN_INPUT, 0) /* (B35) MCU_MDIO0_MDIO */
+		>;
+	};
+};
+
+&mcu_cpsw {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&mcu_cpsw_pins_default>, <&mcu_mdio_pins_default>;
+};
+
+&davinci_mdio {
+	status = "okay";
+	mcu_phy0: ethernet-phy@0 {
+		reg = <0>;
+		ti,rx-internal-delay = <DP83867_RGMIIDCTL_2_00_NS>;
+		ti,fifo-depth = <DP83867_PHYCR_FIFO_DEPTH_4_B_NIB>;
+		ti,min-output-impedance;
+	};
+};
+
+&mcu_cpsw_port1 {
+	status = "okay";
+	phy-mode = "rgmii-rxid";
+	phy-handle = <&mcu_phy0>;
+};
+#endif

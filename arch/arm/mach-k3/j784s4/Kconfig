@@ -48,5 +48,6 @@ config TARGET_J742S2_R5_EVM
 endchoice
 
 source "board/ti/j784s4/Kconfig"
+source "board/toradex/aquila-am69/Kconfig"
 
 endif
