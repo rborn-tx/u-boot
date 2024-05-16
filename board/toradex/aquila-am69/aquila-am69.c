@@ -6,6 +6,7 @@
  */
 
 #include <asm/arch/hardware.h>
+#include <asm/gpio.h>
 #include <asm/io.h>
 #include <dm.h>
 #include <env.h>
@@ -17,6 +18,34 @@
 #define CTRL_MMR_CFG0_MCU_ADC1_CTRL	0x40F040B4
 
 DECLARE_GLOBAL_DATA_PTR;
+static u8 hw_cfg;
+
+static void read_hw_cfg(void)
+{
+	struct gpio_desc gpio_hw_cfg;
+	char gpio_name[20];
+	int i;
+
+	printf("HW CFG: ");
+	for (i = 0; i < 5; i++) {
+		sprintf(gpio_name, "gpio@42110000_%d", 82 + i);
+		if (dm_gpio_lookup_name(gpio_name, &gpio_hw_cfg) < 0) {
+			printf("Lookup named gpio error\n");
+			return;
+		}
+
+		if (dm_gpio_request(&gpio_hw_cfg, "hw_cfg")) {
+			printf("gpio request error\n");
+			return;
+		}
+
+		if (dm_gpio_get_value(&gpio_hw_cfg) == 1)
+			hw_cfg |= BIT(i);
+
+		dm_gpio_free(NULL, &gpio_hw_cfg);
+	}
+	printf("0x%2x\n", hw_cfg);
+}
 
 int board_init(void)
 {
@@ -102,4 +131,6 @@ void spl_board_init(void)
 	/* MCU_ADC1 pins used as General Purpose Inputs */
 	writel(readl(CTRL_MMR_CFG0_MCU_ADC1_CTRL) | BIT(16),
 	       CTRL_MMR_CFG0_MCU_ADC1_CTRL);
+
+	read_hw_cfg();
 }
