@@ -14,6 +14,8 @@
 #include "../../../arch/arm/mach-k3/common_fdt.h"
 #include "../common/tdx-common.h"
 
+#define CTRL_MMR_CFG0_MCU_ADC1_CTRL	0x40F040B4
+
 DECLARE_GLOBAL_DATA_PTR;
 
 int board_init(void)
@@ -96,4 +98,8 @@ void spl_board_init(void)
 		if (ret)
 			printf("ESM PMIC init failed: %d\n", ret);
 	}
+
+	/* MCU_ADC1 pins used as General Purpose Inputs */
+	writel(readl(CTRL_MMR_CFG0_MCU_ADC1_CTRL) | BIT(16),
+	       CTRL_MMR_CFG0_MCU_ADC1_CTRL);
 }
