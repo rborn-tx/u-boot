@@ -121,6 +121,10 @@
 	status = "disabled";
 };
 
+&wkup_gpio0 {
+	status = "okay";
+};
+
 #ifdef RUNNING_ON_AM69SK
 / {
 	aliases {

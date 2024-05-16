@@ -113,6 +113,10 @@
 	bootph-pre-ram;
 };
 
+&wkup_gpio0 {
+	bootph-pre-ram;
+};
+
 &wkup_i2c0 {
 	bootph-pre-ram;
 	status = "okay";
