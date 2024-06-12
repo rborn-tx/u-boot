@@ -10,6 +10,5 @@ F:	arch/arm/dts/k3-am69-aquila.dtsi
 F:	arch/arm/dts/k3-am69-r5-aquila-dev.dts
 F:	board/toradex/aquila-am69
 F:	configs/aquila-am69_a72_defconfig
-F:	configs/aquila-am69_r5_usbdfu_defconfig
 F:	configs/aquila-am69_r5_defconfig
 F:	include/configs/aquila-am69.h
