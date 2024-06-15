@@ -16,6 +16,8 @@
 #include "../common/tdx-common.h"
 
 #define CTRL_MMR_CFG0_MCU_ADC1_CTRL	0x40F040B4
+#define CTRL_MMR_CFG0_MCU_CLKOUT0_CTRL	0x40F08010
+#define MCU_CLKOUT0_CTRL_CLK_EN		BIT(4)
 
 DECLARE_GLOBAL_DATA_PTR;
 static u8 hw_cfg;
@@ -131,6 +133,11 @@ void spl_board_init(void)
 	/* MCU_ADC1 pins used as General Purpose Inputs */
 	writel(readl(CTRL_MMR_CFG0_MCU_ADC1_CTRL) | BIT(16),
 	       CTRL_MMR_CFG0_MCU_ADC1_CTRL);
+
+	if (IS_ENABLED(CONFIG_TARGET_AQUILA_AM69_R5))
+		writel(readl(CTRL_MMR_CFG0_MCU_CLKOUT0_CTRL) |
+		       MCU_CLKOUT0_CTRL_CLK_EN,
+		       CTRL_MMR_CFG0_MCU_CLKOUT0_CTRL);
 
 	read_hw_cfg();
 }
