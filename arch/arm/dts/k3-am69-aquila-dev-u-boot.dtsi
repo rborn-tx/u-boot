@@ -43,6 +43,10 @@
 	bootph-pre-ram;
 };
 
+&main_gpio0 {
+	bootph-pre-ram;
+};
+
 &main_navss {
 	bootph-pre-ram;
 };

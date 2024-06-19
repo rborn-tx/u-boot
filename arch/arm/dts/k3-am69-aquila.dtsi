@@ -49,28 +49,52 @@
 		};
 	};
 
+	/* Aquila SD_1_PWR_EN */
 	reg_sdhc1_vmmc: regulator-sdhci1 {
 		compatible = "regulator-fixed";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_sd1_pwr_en>;
 		enable-active-high;
+		/* Aquila SD_1_PWR_EN (AQUILA A6) */
+		gpio = <&main_gpio0 52 GPIO_ACTIVE_HIGH>;
 		off-on-delay-us = <100000>;
 		regulator-max-microvolt = <3300000>;
 		regulator-min-microvolt = <3300000>;
 		regulator-name = "+3V3_SD";
 		startup-delay-us = <5000>;
 	};
+
+	reg_sdhc1_vqmmc: regulator-sdhci1-vqmmc {
+		compatible = "regulator-gpio";
+		/* SDIO_PWR_SEL_3.3V */
+		gpios = <&som_gpio_expander 7 GPIO_ACTIVE_HIGH>;
+		regulator-name = "+VDD_SD_DV";
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <3300000>;
+		states = <1800000 0x0>,
+			 <3300000 0x1>;
+	};
 };
 
 &main_pmx0 {
+	/* Aquila SD_1_PWR_EN */
+	pinctrl_sd1_pwr_en: main-gpio0-52-default-pins {
+		pinctrl-single,pins = <
+			J784S4_IOPAD(0x0d0, PIN_INPUT, 7) /* (AP38) SPI0_CS1.GPIO0_52 */ /* AQUILA A6 */
+		>;
+	};
+
 	/* Aquila SD_1 */
 	pinctrl_main_mmc1: main-mmc1-default-pins {
 		pinctrl-single,pins = <
 			J784S4_IOPAD(0x104, PIN_INPUT, 0) /* (AB38) MMC1_CLK  */ /* AQUILA A6 */
 			J784S4_IOPAD(0x108, PIN_INPUT, 0) /* (AB36) MMC1_CMD  */ /* AQUILA A4 */
+			J784S4_IOPAD(0x100, PIN_INPUT, 0) /* (No Pin) MMC1_CLKLB */
 			J784S4_IOPAD(0x0fc, PIN_INPUT, 0) /* (AA33) MMC1_DAT0 */ /* AQUILA A8 */
 			J784S4_IOPAD(0x0f8, PIN_INPUT, 0) /* (AB34) MMC1_DAT1 */ /* AQUILA A9 */
 			J784S4_IOPAD(0x0f4, PIN_INPUT, 0) /* (AA32) MMC1_DAT2 */ /* AQUILA A1 */
 			J784S4_IOPAD(0x0f0, PIN_INPUT, 0) /* (AC38) MMC1_DAT3 */ /* AQUILA A3 */
-			J784S4_IOPAD(0x0e8, PIN_INPUT, 8) /* (AR38) TIMER_IO0.MMC1_SDCD */ /* AQUILA A10 */
+			J784S4_IOPAD(0x0e8, PIN_INPUT_PULLUP, 8) /* (AR38) TIMER_IO0.MMC1_SDCD */ /* AQUILA A10 */
 		>;
 	};
 
@@ -79,6 +103,16 @@
 		pinctrl-single,pins = <
 			J784S4_IOPAD(0x038, PIN_INPUT, 11)  /* (AK35) MCASP0_ACLKX.UART8_RXD */ /* AQUILA D19 */
 			J784S4_IOPAD(0x03c, PIN_OUTPUT, 11) /* (AK38) MCASP0_AFSX.UART8_TXD  */ /* AQUILA D20 */
+		>;
+	};
+};
+
+&wkup_pmx2 {
+	/* On-module I2C - WKUP_I2C0 */
+	pinctrl_wkup_i2c0: wkup-i2c0-default-pins {
+		pinctrl-single,pins = <
+			J784S4_WKUP_IOPAD(0x098, PIN_INPUT, 0) /* (N33) WKUP_I2C0_SCL */
+			J784S4_WKUP_IOPAD(0x09c, PIN_INPUT, 0) /* (N35) WKUP_I2C0_SDA */
 		>;
 	};
 };
@@ -102,7 +136,9 @@
 	pinctrl-0 = <&pinctrl_main_mmc1>;
 	disable-wp;
 	vmmc-supply = <&reg_sdhc1_vmmc>;
+	vqmmc-supply = <&reg_sdhc1_vqmmc>;
 	ti,driver-strength-ohm = <50>;
+	ti,fails-without-test-cd;
 	status = "disabled";
 };
 
@@ -115,4 +151,28 @@
 
 &wkup_gpio0 {
 	status = "okay";
+};
+
+/* On-module I2C - WKUP_I2C0 */
+&wkup_i2c0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_wkup_i2c0>;
+	clock-frequency = <400000>;
+	status = "okay";
+
+	som_gpio_expander: gpio@21 {
+		compatible = "ti,tca6408";
+		reg = <0x21>;
+		#gpio-cells = <2>;
+		gpio-controller;
+		gpio-line-names =
+			"USB_MUX_SEL",
+			"COLD_RESET_REQ",
+			"PWR_DOWN_REQ",
+			"PCIE_3_RESET#",
+			"PCIE_4_RESET#",
+			"WIFI_DISABLE",
+			"BT_DISABLE",
+			"SDIO_PWR_SEL_3.3V";
+	};
 };
