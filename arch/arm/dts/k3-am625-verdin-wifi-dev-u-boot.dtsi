@@ -182,6 +182,17 @@
 	status = "disabled";
 };
 
+&usb0 {
+	dr_mode = "peripheral";
+	/* Since role switching is not supported in U-Boot */
+	/delete-property/ extcon;
+	bootph-pre-ram;
+};
+
+&usbss0 {
+	bootph-pre-ram;
+};
+
 &verdin_ctrl_sleep_moci {
 	bootph-all;
 };
