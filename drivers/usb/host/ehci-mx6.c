@@ -122,6 +122,15 @@ static const struct ehci_ops mx6_ehci_ops = {
 	.powerup_fixup		= ehci_mx6_powerup_fixup,
 };
 
+#if defined(CONFIG_MX6) || defined(CONFIG_IMXRT)
+static const ulong phy_bases[] = {
+       USB_PHY0_BASE_ADDR,
+#if defined(USB_PHY1_BASE_ADDR)
+       USB_PHY1_BASE_ADDR,
+#endif
+};
+#endif
+
 int ehci_hcd_init(int index, enum usb_init_type init,
 		struct ehci_hccr **hccr, struct ehci_hcor **hcor)
 {
@@ -630,7 +639,9 @@ err_regulator:
 	if (priv->vbus_supply)
 		regulator_set_enable(priv->vbus_supply, false);
 #endif
+#if CONFIG_IS_ENABLED(DM_REGULATOR)
 err_phy:
+#endif
 #if CONFIG_IS_ENABLED(PHY) && !defined(CONFIG_IMX8)
 	generic_shutdown_phy(&priv->phy);
 #endif
