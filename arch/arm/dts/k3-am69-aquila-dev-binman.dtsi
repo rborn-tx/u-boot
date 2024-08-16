@@ -5,117 +5,10 @@
 
 #include "k3-binman.dtsi"
 
-&binman {
-	custMpk {
-		filename = "custMpk.pem";
-		blob-ext {
-			filename = "../../ti/keys/custMpk.pem";
-		};
-	};
-
-	ti-degenerate-key {
-		filename = "ti-degenerate-key.pem";
-		blob-ext {
-			filename = "../../ti/keys/ti-degenerate-key.pem";
-		};
-	};
-};
-
-#ifndef CONFIG_ARM64
-
-&binman {
-	board-cfg {
-		filename = "board-cfg.bin";
-		bcfg_yaml: ti-board-config {
-			config = "board-cfg.yaml";
-			schema = "../../ti/common/schema.yaml";
-		};
-	};
-	pm-cfg {
-		filename = "pm-cfg.bin";
-		rcfg_yaml: ti-board-config {
-			config = "pm-cfg.yaml";
-			schema = "../../ti/common/schema.yaml";
-		};
-	};
-	rm-cfg {
-		filename = "rm-cfg.bin";
-		pcfg_yaml: ti-board-config {
-			config = "rm-cfg.yaml";
-			schema = "../../ti/common/schema.yaml";
-		};
-	};
-	sec-cfg {
-		filename = "sec-cfg.bin";
-		scfg_yaml: ti-board-config {
-			config = "sec-cfg.yaml";
-			schema = "../../ti/common/schema.yaml";
-		};
-	};
-	combined-tifs-cfg {
-		filename = "combined-tifs-cfg.bin";
-		ti-board-config {
-			bcfg_yaml_tifs: board-cfg {
-				config = "board-cfg.yaml";
-				schema = "../../ti/common/schema.yaml";
-			};
-			scfg_yaml_tifs: sec-cfg {
-				config = "sec-cfg.yaml";
-				schema = "../../ti/common/schema.yaml";
-			};
-			pcfg_yaml_tifs: pm-cfg {
-				config = "pm-cfg.yaml";
-				schema = "../../ti/common/schema.yaml";
-			};
-			rcfg_yaml_tifs: rm-cfg {
-				config = "rm-cfg.yaml";
-				schema = "../../ti/common/schema.yaml";
-			};
-		};
-	};
-	combined-dm-cfg {
-		filename = "combined-dm-cfg.bin";
-		ti-board-config {
-			pcfg_yaml_dm: pm-cfg {
-				config = "pm-cfg.yaml";
-				schema = "../../ti/common/schema.yaml";
-			};
-			rcfg_yaml_dm: rm-cfg {
-				config = "rm-cfg.yaml";
-				schema = "../../ti/common/schema.yaml";
-			};
-		};
-	};
-	combined-sysfw-cfg {
-		filename = "combined-sysfw-cfg.bin";
-		ti-board-config {
-			board-cfg {
-				config = "board-cfg.yaml";
-				schema = "../../ti/common/schema.yaml";
-			};
-			sec-cfg {
-				config = "sec-cfg.yaml";
-				schema = "../../ti/common/schema.yaml";
-			};
-			pm-cfg {
-				config = "pm-cfg.yaml";
-				schema = "../../ti/common/schema.yaml";
-			};
-			rm-cfg {
-				config = "rm-cfg.yaml";
-				schema = "../../ti/common/schema.yaml";
-			};
-		};
-	};
-};
-
-#endif /* CONFIG_ARM64 */
-
 #ifdef CONFIG_TARGET_AQUILA_AM69_R5
 
 &rcfg_yaml_tifs {
 	config = "tifs-rm-cfg.yaml";
-	schema = "../../ti/common/schema.yaml";
 };
 
 &binman {
@@ -263,78 +156,17 @@
 		};
 	};
 	ti-spl {
-		filename = "tispl.bin";
-		pad-byte = <0xff>;
+		insert-template = <&ti_spl_template>;
 
 		fit {
-			description = "Configuration to load ATF and SPL";
-			#address-cells = <1>;
-
 			images {
-
-				atf {
-					description = "ARM Trusted Firmware";
-					type = "firmware";
-					arch = "arm64";
-					compression = "none";
-					os = "arm-trusted-firmware";
-					load = <CONFIG_K3_ATF_LOAD_ADDR>;
-					entry = <CONFIG_K3_ATF_LOAD_ADDR>;
-					ti-secure {
-						content = <&atf>;
-						keyfile = "custMpk.pem";
-					};
-					atf: atf-bl31 {
-					};
-				};
-
-				tee {
-					description = "OPTEE";
-					type = "tee";
-					arch = "arm64";
-					compression = "none";
-					os = "tee";
-					load = <0x9e800000>;
-					entry = <0x9e800000>;
-					ti-secure {
-						content = <&tee>;
-						keyfile = "custMpk.pem";
-					};
-					tee: tee-os {
-					};
-				};
-
 				dm {
-					description = "DM binary";
-					type = "firmware";
-					arch = "arm32";
-					compression = "none";
-					os = "DM";
-					load = <0x89000000>;
-					entry = <0x89000000>;
 					ti-secure {
 						content = <&dm>;
 						keyfile = "custMpk.pem";
 					};
 					dm: ti-dm {
 						filename = "ti-dm.bin";
-					};
-				};
-
-				spl {
-					description = "SPL (64-bit)";
-					type = "standalone";
-					os = "U-Boot";
-					arch = "arm64";
-					compression = "none";
-					load = <CONFIG_SPL_TEXT_BASE>;
-					entry = <CONFIG_SPL_TEXT_BASE>;
-					ti-secure {
-						content = <&u_boot_spl_nodtb>;
-						keyfile = "custMpk.pem";
-					};
-					u_boot_spl_nodtb: blob-ext {
-						filename = "spl/u-boot-spl-nodtb.bin";
 					};
 				};
 
@@ -370,29 +202,12 @@
 
 &binman {
 	u-boot {
-		filename = "u-boot.img";
-		pad-byte = <0xff>;
+		insert-template = <&u_boot_template>;
 
 		fit {
-			description = "FIT image with multiple configurations";
-
 			images {
 				uboot {
 					description = "U-Boot for AM69 Aquila board";
-					type = "firmware";
-					os = "u-boot";
-					arch = "arm";
-					compression = "none";
-					load = <CONFIG_TEXT_BASE>;
-					ti-secure {
-						content = <&u_boot_nodtb>;
-						keyfile = "custMpk.pem";
-					};
-					u_boot_nodtb: u-boot-nodtb {
-					};
-					hash {
-						algo = "crc32";
-					};
 				};
 
 				fdt-0 {
@@ -430,64 +245,13 @@
 
 &binman {
 	ti-spl_unsigned {
-		filename = "tispl.bin_unsigned";
-		pad-byte = <0xff>;
+		insert-template = <&ti_spl_unsigned_template>;
 
 		fit {
-			description = "Configuration to load ATF and SPL";
-			#address-cells = <1>;
-
 			images {
-
-				atf {
-					description = "ARM Trusted Firmware";
-					type = "firmware";
-					arch = "arm64";
-					compression = "none";
-					os = "arm-trusted-firmware";
-					load = <CONFIG_K3_ATF_LOAD_ADDR>;
-					entry = <CONFIG_K3_ATF_LOAD_ADDR>;
-					atf-bl31 {
-						filename = "bl31.bin";
-					};
-				};
-
-				tee {
-					description = "OPTEE";
-					type = "tee";
-					arch = "arm64";
-					compression = "none";
-					os = "tee";
-					load = <0x9e800000>;
-					entry = <0x9e800000>;
-					tee-os {
-						filename = "tee-pager_v2.bin";
-					};
-				};
-
 				dm {
-					description = "DM binary";
-					type = "firmware";
-					arch = "arm32";
-					compression = "none";
-					os = "DM";
-					load = <0x89000000>;
-					entry = <0x89000000>;
 					ti-dm {
 						filename = "ti-dm.bin";
-					};
-				};
-
-				spl {
-					description = "SPL (64-bit)";
-					type = "standalone";
-					os = "U-Boot";
-					arch = "arm64";
-					compression = "none";
-					load = <CONFIG_SPL_TEXT_BASE>;
-					entry = <CONFIG_SPL_TEXT_BASE>;
-					blob {
-						filename = "spl/u-boot-spl-nodtb.bin";
 					};
 				};
 
@@ -518,26 +282,12 @@
 
 &binman {
 	u-boot_unsigned {
-		filename = "u-boot.img_unsigned";
-		pad-byte = <0xff>;
+		insert-template = <&u_boot_unsigned_template>;
 
 		fit {
-			description = "FIT image with multiple configurations";
-
 			images {
 				uboot {
 					description = "U-Boot for AM69 Aquila board";
-					type = "firmware";
-					os = "u-boot";
-					arch = "arm";
-					compression = "none";
-					load = <CONFIG_TEXT_BASE>;
-					blob {
-						filename = "u-boot-nodtb.bin";
-					};
-					hash {
-						algo = "crc32";
-					};
 				};
 
 				fdt-0 {
