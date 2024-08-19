@@ -37,6 +37,7 @@ CONFIG_LEGACY_IMAGE_FORMAT=y
 CONFIG_SYS_BOOTM_LEN=0x40000000
 CONFIG_DISTRO_DEFAULTS=y
 CONFIG_BOOTDELAY=1
+CONFIG_BOOTCOMMAND="run distro_bootcmd"
 CONFIG_USE_PREBOOT=y
 CONFIG_PREBOOT="test -n ${fdtfile} || setenv fdtfile k3-am625-verdin-${variant}-${fdt_board}.dtb"
 CONFIG_LOG=y
