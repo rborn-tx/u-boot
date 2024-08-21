@@ -376,7 +376,7 @@
 			 * This value matches CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR
 			 * from R5 SPL config.
 			 */
-			offset = <0x100000>;
+			offset = <0x80000>;
 		};
 
 		blob-ext@3 {
