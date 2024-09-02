@@ -697,10 +697,13 @@ static int find_category_in_fdt(const uint16_t *categs, int categs_length,
 /**
  * on_cmd_execution_denied - Handle command execution denials
  */
-static void on_cmd_execution_denied(int argc,
-				    char *const argv[], char *const reason)
+static void on_cmd_execution_denied(int simulated,
+				    int argc, char *const argv[],
+				    char *const reason)
 {
-	puts("Command execution denied (");
+	puts("## WARNING: Command execution ");
+	puts(simulated ? "WOULD BE DENIED in closed state" : "denied");
+	puts(" (");
 	puts(reason);
 	puts(") for `");
 	for (int i = 0; i < argc; i++) {
@@ -727,59 +730,25 @@ static int cmd_whitelist_enabled(int *dev_is_open)
 }
 
 /**
- * cmd_allowed_by_whitelist - Check if command execution is allowed by whitelist
+ * cmd_allowed_by_whitelist_idx - Check if command execution is allowed
  *
- * @cmdtp: Pointer to the command to execute
- * @argc: Number of arguments (arg 0 must be the command text)
- * @argv: Arguments (include command name at index 0)
- * Return: 1 if command is allowed or 0 otherwise
+ * @device_is_open: Device state
+ * @found_ind: Index of command in whitelist table
  */
-int cmd_allowed_by_whitelist(struct cmd_tbl *cmd, int argc, char *const argv[])
+static int cmd_allowed_by_whitelist_idx(int device_is_open, int found_ind)
 {
-	int rbeg, rend;
-	int allow = 0, device_is_open = 0, found_ind = -1;
-	const struct cmd_whitelist_entry *wle = NULL;
+	const struct cmd_whitelist_entry *wle = &cmd_whitelist[found_ind];
+	int allow = 0;
 
-	if (!cmd_whitelist_enabled(&device_is_open)) {
-		/* Whitelist feature disabled (at runtime). */
-		return 1;
-	}
-	if (!gd->fdt_blob) {
-		printf("whitelist feature requires a valid FDT blob\n");
-		return 1;
-	}
-
-	if (!find_range_in_whitelist(cmd->name, &rbeg, &rend)) {
-		/* Command name not in whitelist: deny execution. */
-		on_cmd_execution_denied(argc, argv, "name not in whitelist");
-		return 0;
-	}
-
-	/* Find first entry matching command arguments. */
-	for (int ind = rbeg; ind <= rend; ind++) {
-		if (args_match_whitelist_entry(argc, argv, ind)) {
-			found_ind = ind;
-			break;
-		}
-	}
-	if (found_ind < 0) {
-		/* Specific command format not in whitelist: deny execution. */
-		on_cmd_execution_denied(argc, argv, "format not in whitelist");
-		return 0;
-	}
-
-	/* Check the command categories against the allowed/denied ones. */
-	wle = &cmd_whitelist[found_ind];
-
-	if (!allow &&
-	    find_category_in_fdt(
+	if (find_category_in_fdt(
 		    wle->categories, WHITELIST_MAX_CMD_CATEGORIES,
 		    bootldr_cmds_node_path,
 		    (device_is_open ? "allow-open" : "allow-closed"),
 		    (device_is_open ?
 		     default_allowed_categories_open :
 		     default_allowed_categories_closed))) {
-		debug("Entry %d passed categories whitelist\n", found_ind);
+		debug("Entry %d passed categories whitelist when %s\n",
+		      found_ind, device_is_open ? "open" : "closed");
 		allow = 1;
 	}
 
@@ -791,7 +760,8 @@ int cmd_allowed_by_whitelist(struct cmd_tbl *cmd, int argc, char *const argv[])
 		    (device_is_open ?
 		     default_denied_categories_open :
 		     default_denied_categories_closed))) {
-		debug("Entry %d blocked by categories blacklist\n", found_ind);
+		debug("Entry %d blocked by categories blacklist when %s\n",
+		      found_ind, device_is_open ? "open" : "closed");
 		allow = 0;
 	}
 
@@ -805,10 +775,66 @@ int cmd_allowed_by_whitelist(struct cmd_tbl *cmd, int argc, char *const argv[])
 		allow = 1;
 	}
 
+	return allow;
+}
+
+/**
+ * cmd_allowed_by_whitelist - Check if command execution is allowed by whitelist
+ *
+ * @cmdtp: Pointer to the command to execute
+ * @argc: Number of arguments (arg 0 must be the command text)
+ * @argv: Arguments (include command name at index 0)
+ * Return: 1 if command is allowed or 0 otherwise
+ */
+int cmd_allowed_by_whitelist(struct cmd_tbl *cmd, int argc, char *const argv[])
+{
+	int rbeg, rend;
+	int allow = 0, device_is_open = 0, found_ind = -1;
+
+	if (!cmd_whitelist_enabled(&device_is_open)) {
+		/* Whitelist feature disabled (at runtime). */
+		return 1;
+	}
+	if (!gd->fdt_blob) {
+		printf("whitelist feature requires a valid FDT blob\n");
+		return 1;
+	}
+
+	if (!find_range_in_whitelist(cmd->name, &rbeg, &rend)) {
+		/* Command name not in whitelist: deny execution. */
+		on_cmd_execution_denied(0, argc, argv, "name not in whitelist");
+		return 0;
+	}
+
+	/* Find first entry matching command arguments. */
+	for (int ind = rbeg; ind <= rend; ind++) {
+		if (args_match_whitelist_entry(argc, argv, ind)) {
+			found_ind = ind;
+			break;
+		}
+	}
+	if (found_ind < 0) {
+		/* Specific command format not in whitelist: deny execution. */
+		on_cmd_execution_denied(0, argc, argv, "format not in whitelist");
+		return 0;
+	}
+
+	/* Check the command categories against the allowed/denied ones. */
+	allow = cmd_allowed_by_whitelist_idx(device_is_open, found_ind);
 	if (!allow) {
-		/* Some command category is not the whitelist */
+		/* Some command category is not in the whitelist */
 		/* or is present in the blacklist. */
-		on_cmd_execution_denied(argc, argv, "blocked by category");
+		on_cmd_execution_denied(0, argc, argv, "blocked by category");
+	}
+
+	if (device_is_open) {
+		/* Determine if command would be allowed if the device were */
+		/* in closed state; let user know if not so they don't */
+		/* inadvertently close it leaving the device unbootable. */
+		int allow_when_closed = cmd_allowed_by_whitelist_idx(0, found_ind);
+		if (!allow_when_closed) {
+			on_cmd_execution_denied(1, argc, argv, "blocked by category");
+		}
 	}
 
 	return allow;
