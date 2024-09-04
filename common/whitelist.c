@@ -305,7 +305,7 @@ static const struct cmd_whitelist_entry cmd_whitelist[] = {
 	{ { "nfs", ALL }, { CMD_CAT_EXEC, CMD_CAT_MEM_WRITE } },
 	{ { "nm", ALL }, { CMD_CAT_MEM_READ, CMD_CAT_MEM_WRITE } },
 	{ { "panic", ALL }, { CMD_CAT_SAFE } },
-	{ { "part", "uuid", ALL }, { CMD_CAT_PART_READ } },
+	{ { "part", "uuid", ALL }, { CMD_CAT_PART_READ, CMD_CAT_NEEDED } },
 	{ { "part", "list", ALL }, { CMD_CAT_PART_READ, CMD_CAT_NEEDED } },
 	{ { "part", "start", ALL }, { CMD_CAT_PART_READ } },
 	{ { "part", "size", ALL }, { CMD_CAT_PART_READ } },
