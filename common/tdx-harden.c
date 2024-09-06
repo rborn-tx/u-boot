@@ -56,19 +56,22 @@ enum bootarg_param_type_t {
 	BPARAM_NONE,
 	BPARAM_INTEGER,
 	BPARAM_OSTREE_PATH,
+	BPARAM_GENERIC_UUID,
 };
 
 struct bootarg_spec_t {
 	const char *param;
 	enum bootarg_param_type_t type;
+	const char *conflict;
 };
 
 static const struct bootarg_spec_t bootarg_spec[] = {
-	{ "ostree=", BPARAM_OSTREE_PATH },
+	{ "ostree=", BPARAM_OSTREE_PATH, NULL },
+	{ "root=PARTUUID=", BPARAM_GENERIC_UUID, "root=" }
 #if 0
 	/* Examples */
-	{ "loglevel=", BPARAM_INTEGER },
-	{ "nowb", BPARAM_NONE },
+	{ "loglevel=", BPARAM_INTEGER, NULL },
+	{ "nowb", BPARAM_NONE, NULL },
 #endif
 };
 
@@ -245,7 +248,7 @@ void tdx_secure_boot_cmd(const char *cmd)
 
 #ifdef CONFIG_TDX_BOOTARGS_PROTECTION
 /**
- * _tdx_valid_var_bootargs - Check single argument in bootargs
+ * _tdx_valid_var_bootarg - Check single argument in bootargs
  *
  * TODO: Add support for quoted strings.
  */
@@ -275,6 +278,14 @@ static int _tdx_valid_var_bootarg(const char *value,
 			return 0;
 		break;
 	}
+	case BPARAM_GENERIC_UUID: {
+		/* Accept hex digits and dashes. */
+		while (isxdigit(*valp) || *valp == '-')
+			valp++;
+		if (valp == value)
+			return 0;
+		break;
+	}
 	default:
 		printf("Unhandled bootarg param type %d\n", (int) type);
 		return 0;
@@ -293,7 +304,7 @@ static int _tdx_valid_var_bootarg(const char *value,
 /**
  * _tdx_valid_var_bootargs - Check the variable part of bootargs
  */
-static int _tdx_valid_var_bootargs(const char *bootargs)
+static int _tdx_valid_var_bootargs(const char *bootargs, const char *reqargs)
 {
 	const char *args = bootargs, *value = NULL, *eptr;
 
@@ -308,7 +319,7 @@ static int _tdx_valid_var_bootargs(const char *bootargs)
 			}
 		}
 		if (bi >= BOOTARG_SPEC_LEN) {
-			printf("## Unexpected argument in bootargs: "
+			printf("## Unexpected argument in variable bootargs: "
 			       "%.16s...\n", args);
 			return 0;
 		}
@@ -317,6 +328,29 @@ static int _tdx_valid_var_bootargs(const char *bootargs)
 			printf("## Argument validation failed for bootarg "
 			       "%.16s...\n", args);
 			return 0;
+		}
+
+		/* Check if the parameter specified in the variable part conflicts
+                   with a parameter in the required (fixed) part; this prevents
+                   parameters to be overriden in the variable part when they are
+                   supposed to be present only in the fixed part of the bootargs. */
+		if (bootarg_spec[bi].conflict) {
+			const char *reqptr = strstr(reqargs, bootarg_spec[bi].conflict);
+			int conflict = 0;
+			if (reqptr && reqptr == reqargs) {
+				/* found at the beginning of the reqargs. */
+				conflict = 1;
+
+			} else if (reqptr && reqptr != reqargs) {
+				/* found not at the beginning: confirm. */
+				reqptr--;
+				if (isspace(*reqptr)) conflict = 1;
+			}
+			if (conflict) {
+				printf("## Conflicting argument in variable bootargs: "
+				       "%.16s...\n", args);
+				return 0;
+			}
 		}
 
 		args = eptr;
@@ -384,7 +418,7 @@ int tdx_valid_bootargs(void *fdt, const char *bootargs)
 	}
 
 	debug("variable part to validate: \"%s\"\n", args);
-	if (!_tdx_valid_var_bootargs(args))
+	if (!_tdx_valid_var_bootargs(args, req_args))
 		goto varpart_invalid;
 
 	return 1;
