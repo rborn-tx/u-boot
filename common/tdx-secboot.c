@@ -73,6 +73,11 @@ static int _tdx_secboot_dev_is_open(void)
 	default:	/* Unknown */
 		break;
 	}
+#elif defined(CONFIG_ARCH_K3)
+	int tdx_secboot_k3_dev_is_closed(void);
+	if (tdx_secboot_k3_dev_is_closed()) {
+		return 0;
+	}
 #else
 #warning Neither CONFIG_IMX_HAB nor CONFIG_AHAB_BOOT is set
 #endif
