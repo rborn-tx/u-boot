@@ -587,6 +587,14 @@ static const char *get_device_type_name(void)
 	}
 }
 
+#if defined(CONFIG_TDX_SECBOOT_HARDENING)
+int tdx_secboot_k3_dev_is_closed(void)
+{
+	/* Device is closed (security enforced (SE) state). */
+	return (get_device_type() == K3_DEVICE_TYPE_HS_SE);
+}
+#endif
+
 int print_cpuinfo(void)
 {
 	struct udevice *soc;
