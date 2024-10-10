@@ -41,7 +41,7 @@
 struct cmd_tbl;
 
 int cmd_allowed_by_whitelist(struct cmd_tbl *cmd, int argc, char *const argv[]);
-int tdx_cli_access_enabled(void);
+int tdx_cli_access_enabled(int showmsg);
 void tdx_secure_boot_cmd(const char *cmd);
 int tdx_valid_bootargs(void *fdt, const char *bootargs);
 

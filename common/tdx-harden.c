@@ -119,10 +119,9 @@ int tdx_hardening_enabled(void)
 
 #ifdef CONFIG_TDX_CLI_PROTECTION
 /**
- * tdx_cli_access_enabled - Determine if U-Boot CLI access is to be enabled
- * Return: 1 if CLI access is to be enabled or 0 otherwise.
+ * TODO: Return status instead and show more detailed info in tdx_cli_access_enabled().
  */
-int tdx_cli_access_enabled(void)
+static int _tdx_cli_access_enabled(void)
 {
 	const void *en_prop;
 	int secboot_offset, prop_len;
@@ -152,11 +151,27 @@ int tdx_cli_access_enabled(void)
 	return 0;
 }
 
+/**
+ * tdx_cli_access_enabled - Determine if U-Boot CLI access is to be enabled
+ * Return: 1 if CLI access is to be enabled or 0 otherwise.
+ */
+int tdx_cli_access_enabled(int showmsg)
+{
+	int res = _tdx_cli_access_enabled();
+	if (!showmsg)
+		return res;
+
+	if (res)
+		printf("## U-Boot CLI access is enabled\n");
+	else
+		printf("## U-Boot CLI access is disabled due to Secure Boot\n");
+
+	return res;
+}
+
 void tdx_secure_boot_cmd(const char *cmd)
 {
 	int rc;
-
-	printf("## U-Boot CLI access is disabled due to Secure Boot\n");
 
 	disable_ctrlc(1);
 	rc = run_command_list(cmd, -1, 0);
