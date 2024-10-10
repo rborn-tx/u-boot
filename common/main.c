@@ -68,8 +68,8 @@ void main_loop(void)
 
 	s = bootdelay_process();
 #if CONFIG_IS_ENABLED(TDX_CLI_PROTECTION)
-	if (!tdx_cli_access_enabled())
-		tdx_secure_boot_cmd(s);		/* no return */
+	if (!tdx_cli_access_enabled(1))
+		tdx_secure_boot_cmd(s); 	/* no return */
 #endif
 	if (cli_process_fdt(&s))
 		cli_secure_boot_cmd(s);
