@@ -6,6 +6,7 @@
 #include <common.h>
 #include <compiler.h>
 #include <command.h>
+#include <console.h>
 #include <log.h>
 #include <fdt_support.h>
 #include <asm/global_data.h>
@@ -79,6 +80,55 @@ int tdx_hardening_enabled(void)
 #endif
 	return hdn_enabled;
 }
+
+#ifdef CONFIG_TDX_CLI_PROTECTION
+/**
+ * tdx_cli_access_enabled - Determine if U-Boot CLI access is to be enabled
+ * Return: 1 if CLI access is to be enabled or 0 otherwise.
+ */
+int tdx_cli_access_enabled(void)
+{
+	const void *en_prop;
+	int secboot_offset, prop_len;
+
+	if (!tdx_hardening_enabled())
+		return 1;
+	if (tdx_secboot_dev_is_open())
+		return 1;
+	if (!gd->fdt_blob)
+		return 1;	/* no hardening */
+
+	secboot_offset = fdt_path_offset(gd->fdt_blob, secboot_node_path);
+	if (secboot_offset < 0)
+		return 1;	/* no hardening */
+
+	/* Hardening is enabled and device is closed: CLI access should be
+	   disabled unless the control DTB says otherwise: check it.  */
+	en_prop = fdt_getprop(gd->fdt_blob, secboot_offset,
+			       "enable-cli-when-closed", &prop_len);
+	if (en_prop) {
+		debug("U-Boot CLI access enabled by property (len=%d)\n",
+		      prop_len);
+		return 1;
+	}
+
+	debug("U-Boot CLI access disabled\n");
+	return 0;
+}
+
+void tdx_secure_boot_cmd(const char *cmd)
+{
+	int rc;
+
+	printf("## U-Boot CLI access is disabled due to Secure Boot\n");
+
+	disable_ctrlc(1);
+	rc = run_command_list(cmd, -1, 0);
+
+	panic("## ERROR: \"%s\" returned (code %d) and CLI access is "
+	      "disabled\n", cmd, rc);
+}
+#endif
 
 static int show_hardening_info(void)
 {
@@ -181,4 +231,9 @@ U_BOOT_CMD(hardening, 5, 0, do_hardening,
  * either this configuration option was replaced by something else or the
  * U-Boot configuration is wrong. */
 #error Toradex hardening assumes CONFIG_LMB is set
+#endif
+
+#ifdef CONFIG_UPDATE_TFTP
+/* Self-updates are likely not safe. */
+#error Toradex hardening assumes CONFIG_UPDATE_TFTP is not set
 #endif
