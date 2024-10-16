@@ -12,6 +12,8 @@
  *     chosen {
  *         toradex,secure-boot {    [if not present: disable Toradex hardening]
  *             disabled;                  [optional: disable Toradex hardening]
+ *             enable-cli-when-closed; [optional: keep u-boot cli enabled when]
+                                                          [...device is closed]
  *             bootloader-commands {
  *                 allow-open = <CMD_CAT_ALL>;
  *                 allow-closed = <CMD_CAT_NEEDED CMD_CAT_SAFE>;
@@ -35,6 +37,8 @@
 struct cmd_tbl;
 
 int cmd_allowed_by_whitelist(struct cmd_tbl *cmd, int argc, char *const argv[]);
+int tdx_cli_access_enabled(void);
+void tdx_secure_boot_cmd(const char *cmd);
 
 #ifdef CONFIG_TDX_SECBOOT_HARDENING
 int tdx_hardening_enabled(void);
