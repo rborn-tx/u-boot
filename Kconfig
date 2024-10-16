@@ -761,6 +761,7 @@ config TDX_SECBOOT_HARDENING
 	bool "Toradex Secure Boot hardening"
 	select TDX_CMD_WHITELIST
 	select TDX_BOOTM_PROTECTION
+	select TDX_CLI_PROTECTION
 	help
 	  This causes the Secure Boot hardening features added by Toradex
 	  to be built into U-Boot, including:
@@ -791,3 +792,9 @@ config TDX_BOOTM_PROTECTION
 	help
 	  Enable the protection in bootm to prevent execution of unsigned
 	  images.
+
+config TDX_CLI_PROTECTION
+	bool
+	help
+	  Enable the protection where the CLI is disabled when the device
+	  is in closed state.
