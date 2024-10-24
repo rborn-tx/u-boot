@@ -76,7 +76,7 @@
 		regulator-name = "V3.3_SD";
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
-		startup-delay-us = <2000>;
+		startup-delay-us = <20000>;
 	};
 
 	reg_wifi_en: regulator-wifi-en {
