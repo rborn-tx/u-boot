@@ -32,10 +32,11 @@
 
 &usb0 {
 	dr_mode = "peripheral";
-	maximum-speed = "super-speed";
+	maximum-speed = "high-speed";
 };
 
 &usbss0 {
 	status = "okay";
+	ti,usb2-only;
 	ti,vbus-divider;
 };
