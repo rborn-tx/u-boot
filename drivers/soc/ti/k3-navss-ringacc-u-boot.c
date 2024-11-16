@@ -32,7 +32,7 @@ static void k3_ringacc_ring_reset_raw(struct k3_nav_ring *ring)
 	u32 reg;
 
 	reg = readl(&ring->cfg->size);
-	reg &= KNAV_RINGACC_CFG_RING_SIZE_MASK;
+	reg &= ~KNAV_RINGACC_CFG_RING_SIZE_MASK;
 	reg |= ring->size;
 	writel(reg, &ring->cfg->size);
 }
@@ -42,7 +42,7 @@ static void k3_ringacc_ring_reconfig_qmode_raw(struct k3_nav_ring *ring, enum k3
 	u32 val;
 
 	val = readl(&ring->cfg->size);
-	val &= KNAV_RINGACC_CFG_RING_SIZE_QMODE_MASK;
+	val &= ~KNAV_RINGACC_CFG_RING_SIZE_QMODE_MASK;
 	val |= mode << KNAV_RINGACC_CFG_RING_SIZE_QMODE_SHIFT;
 	writel(val, &ring->cfg->size);
 }
