@@ -99,6 +99,7 @@ static const char *get_board_assembly(u16 ver_assembly)
 int show_board_info(void)
 {
 	unsigned char ethaddr[6];
+	int idx;
 
 	if (read_tdx_cfg_block()) {
 		printf("MISSING TORADEX CONFIG BLOCK\n");
@@ -115,9 +116,10 @@ int show_board_info(void)
 
 		env_set("serial#", tdx_serial_str);
 
+		idx = get_toradex_modules_idx(tdx_hw_tag.prodid);
 		printf("Model: Toradex %04d %s %s\n",
 		       tdx_hw_tag.prodid,
-		       toradex_modules[tdx_hw_tag.prodid].name,
+		       toradex_modules[idx].name,
 		       tdx_board_rev_str);
 		printf("Serial#: %s\n", tdx_serial_str);
 #ifdef CONFIG_TDX_CFG_BLOCK_EXTRA
