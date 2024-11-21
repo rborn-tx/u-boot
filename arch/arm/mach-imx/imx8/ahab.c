@@ -318,6 +318,7 @@ static int do_ahab_status(struct cmd_tbl *cmdtp, int flag, int argc,
 	u8 idx = 0U;
 	u32 event;
 	u16 lc;
+	int retval = 1;
 
 	err = sc_seco_chip_info(-1, &lc, NULL, NULL, NULL);
 	if (err) {
@@ -336,10 +337,12 @@ static int do_ahab_status(struct cmd_tbl *cmdtp, int flag, int argc,
 		err = sc_seco_get_event(-1, idx, &event);
 	}
 
-	if (idx == 0)
+	if (idx == 0) {
 		printf("No SECO Events Found!\n\n");
+		retval = 0;
+	}
 
-	return 0;
+	return retval;
 }
 
 int ahab_close(void)
