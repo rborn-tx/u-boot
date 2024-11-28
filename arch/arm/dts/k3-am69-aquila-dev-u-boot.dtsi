@@ -9,6 +9,14 @@
 	chosen {
 		tick-timer = &timer1;
 	};
+
+	memory@80000000 {
+		bootph-all;
+	};
+
+	sysinfo {
+		compatible = "toradex,sysinfo";
+	};
 };
 
 &cbass_main {
@@ -31,6 +39,13 @@
 	};
 };
 
+&davinci_mdio {
+	/delete-property/ assigned-clocks;
+	/delete-property/ assigned-clock-parents;
+	/delete-property/ assigned-clock-rates;
+	bootph-pre-ram;
+};
+
 &k3_clks {
 	bootph-pre-ram;
 };
@@ -40,6 +55,10 @@
 };
 
 &k3_reset {
+	bootph-pre-ram;
+};
+
+&main_cpsw0 {
 	bootph-pre-ram;
 };
 
@@ -64,6 +83,14 @@
 };
 
 &main_uart8 {
+	bootph-pre-ram;
+};
+
+&mcu_cpsw {
+	bootph-pre-ram;
+};
+
+&mcu_cpsw_port1 {
 	bootph-pre-ram;
 };
 
@@ -110,10 +137,15 @@
 };
 
 &usb0 {
+	/delete-property/ phys;
+	/delete-property/ phy-names;
+	dr_mode = "peripheral";
+	maximum-speed = "high-speed";
 	bootph-pre-ram;
 };
 
 &usbss0 {
+	ti,usb2-only;
 	bootph-pre-ram;
 };
 
