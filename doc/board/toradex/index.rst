@@ -12,3 +12,4 @@ Toradex
    verdin-am62
    verdin-imx8mm
    verdin-imx8mp
+   smarc-imx8mp
