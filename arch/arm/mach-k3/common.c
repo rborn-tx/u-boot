@@ -31,6 +31,7 @@
 #include <wait_bit.h>
 #include <dm/uclass-internal.h>
 #include <dm/device-internal.h>
+#include <mach/lpm.h>
 
 #define CLKSTOP_TRANSITION_TIMEOUT_MS	10
 
@@ -172,14 +173,44 @@ void wkup_ctrl_remove_can_io_isolation_if_set(void)
 		wkup_ctrl_remove_can_io_isolation();
 }
 
+#if IS_ENABLED(CONFIG_K3_IODDR)
 bool wkup_ctrl_is_lpm_exit(void)
 {
-	return IS_ENABLED(CONFIG_K3_IODDR) &&
-		wkup_ctrl_canuart_wakeup_active() &&
+	return wkup_ctrl_canuart_wakeup_active() &&
 		wkup_ctrl_canuart_magic_word_set();
 }
 
-#if IS_ENABLED(CONFIG_K3_IODDR)
+static void wkup_ctrl_reg_update_bits(u32 addr, u32 offset, u32 mask, u32 set)
+{
+	u32 val = readl(addr + offset);
+
+	val &= ~mask;
+	val |= set;
+	writel(val, addr + offset);
+}
+
+void wkup_ctrl_ddrss_pmctrl_deassert_retention(void)
+{
+	wkup_ctrl_reg_update_bits(WKUP_CTRL_MMR0_BASE,
+				  WKUP_CTRL_MMR_DDR16SS_PMCTRL,
+				  WKUP_CTRL_MMR_DDR16SS_PMCTRL_DATA_RET_LD |
+				  WKUP_CTRL_MMR_DDR16SS_PMCTRL_DATA_RETENTION_MASK,
+				  0);
+	wkup_ctrl_reg_update_bits(WKUP_CTRL_MMR0_BASE,
+				  WKUP_CTRL_MMR_DDR16SS_PMCTRL,
+				  WKUP_CTRL_MMR_DDR16SS_PMCTRL_DATA_RET_LD,
+				  WKUP_CTRL_MMR_DDR16SS_PMCTRL_DATA_RET_LD);
+
+	while ((readl(WKUP_CTRL_MMR0_BASE + WKUP_CTRL_MMR_DDR16SS_PMCTRL) &
+		WKUP_CTRL_MMR_DDR16SS_PMCTRL_DATA_RET_LD) == 0)
+		;
+
+	wkup_ctrl_reg_update_bits(WKUP_CTRL_MMR0_BASE,
+				  WKUP_CTRL_MMR_DDR16SS_PMCTRL,
+				  WKUP_CTRL_MMR_DDR16SS_PMCTRL_DATA_RET_LD,
+				  0);
+}
+
 static int lpm_restore_context(u64 ctx_addr)
 {
 	struct ti_sci_handle *ti_sci = get_ti_sci_handle();
@@ -211,8 +242,8 @@ void __noreturn lpm_resume_from_ddr(void)
 		      (void *)lpm_data->tifs_context_save_address);
 
 	image_entry = (image_entry_noargs_t)(u64 *)lpm_data->dm_jump_address;
-	printf("Resuming from DDR, jumping to stored DM loadaddr 0x%p\n",
-	       image_entry);
+	printf("Resuming from DDR, jumping to stored DM loadaddr 0x%p, TIFS context restored from 0x%p\n",
+	       image_entry, (void *)lpm_data->tifs_context_save_address);
 
 	image_entry();
 }

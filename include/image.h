@@ -1813,6 +1813,30 @@ struct cipher_algo *image_get_cipher_algo(const char *full_name);
 struct andr_image_data;
 
 /**
+ * android_image_get_bootimg_size() - Extract size of Android boot image
+ *
+ * This is used to extract the size of an Android boot image
+ * from boot image header.
+ *
+ * @hdr: Pointer to boot image header
+ * @boot_img_size: On exit returns the size in bytes of the boot image
+ * Return: true if succeeded, false otherwise
+ */
+bool android_image_get_bootimg_size(const void *hdr, u32 *boot_img_size);
+
+/**
+ * android_image_get_vendor_bootimg_size() - Extract size of Android vendor-boot image
+ *
+ * This is used to extract the size of an Android vendor-boot image
+ * from vendor-boot image header.
+ *
+ * @hdr: Pointer to vendor-boot image header
+ * @vendor_boot_img_size: On exit returns the size in bytes of the vendor-boot image
+ * Return: true if succeeded, false otherwise
+ */
+bool android_image_get_vendor_bootimg_size(const void *hdr, u32 *vendor_boot_img_size);
+
+/**
  * android_image_get_data() - Parse Android boot images
  *
  * This is used to parse boot and vendor-boot header into
@@ -1857,7 +1881,7 @@ int android_image_get_kernel(const void *hdr,
  * @vendor_boot_img : Pointer to vendor boot image header
  * @rd_data:	Pointer to a ulong variable, will hold ramdisk address
  * @rd_len:	Pointer to a ulong variable, will hold ramdisk length
- * Return: 0 if succeeded, -1 if ramdisk size is 0
+ * Return: 0 if OK, -ENOPKG if no ramdisk, -EINVAL if invalid image
  */
 int android_image_get_ramdisk(const void *hdr, const void *vendor_boot_img,
 			      ulong *rd_data, ulong *rd_len);

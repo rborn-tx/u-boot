@@ -13,6 +13,7 @@
 #include <dm.h>
 #include <dm/uclass-internal.h>
 #include <dm/pinctrl.h>
+#include <mach/lpm.h>
 
 #define CTRLMMR_MCU_RST_CTRL             0x04518170
 #define RST_CTRL_ESM_ERROR_RST_EN_Z_MASK 0xFFFDFFFF
@@ -169,9 +170,6 @@ void board_init_f(ulong dummy)
 		ret = uclass_get_device(UCLASS_RAM, 0, &dev);
 		if (ret)
 			panic("DRAM init failed: %d\n", ret);
-
-		if (wkup_ctrl_is_lpm_exit())
-			lpm_resume_from_ddr();
 	}
 
 	if (IS_ENABLED(CONFIG_ESM_K3)) {
@@ -198,6 +196,9 @@ void board_init_f(ulong dummy)
 						&cpswdev))
 			printf("Failed to probe am65_cpsw_nuss driver\n");
 	}
+
+	if (wkup_ctrl_is_lpm_exit())
+		lpm_resume_from_ddr();
 
 	setup_qos();
 	debug("am62px_init: %s done\n", __func__);
