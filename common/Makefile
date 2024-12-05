@@ -30,6 +30,9 @@ obj-$(CONFIG_USB_GADGET) += usb.o
 obj-$(CONFIG_USB_STORAGE) += usb_storage.o
 obj-$(CONFIG_USB_ONBOARD_HUB) += usb_onboard_hub.o
 
+obj-$(CONFIG_IMX_HAB) += tdx-hab-utils.o
+obj-$(CONFIG_AHAB_BOOT) += tdx-hab-utils.o
+
 # others
 obj-$(CONFIG_CONSOLE_MUX) += iomux.o
 obj-$(CONFIG_MTD_NOR_FLASH) += flash.o
