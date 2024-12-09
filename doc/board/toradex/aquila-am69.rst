@@ -50,7 +50,6 @@ Then build ATF (TF-A):
 
 .. code-block:: bash
 
-    $ export ARCH=aarch64
     $ export CROSS_COMPILE="$CROSS_COMPILE_64"
     $ make PLAT=k3 TARGET_BOARD=j784s4 SPD=opteed K3_USART=0x8
 
@@ -77,7 +76,6 @@ Build U-Boot for R5
 
 .. code-block:: bash
 
-    $ export ARCH=arm
     $ export CROSS_COMPILE="$CROSS_COMPILE_32"
     $ export BINMAN_INDIRS=<path/to/ti-linux-firmware>
     $ make O=/tmp/aquila-r5 aquila-am69_r5_config
@@ -88,11 +86,10 @@ Build U-Boot for A72
 
 .. code-block:: bash
 
-    $ export ARCH=arm64
     $ export CROSS_COMPILE=$CROSS_COMPILE_64
     $ export BL31=<path/to/atf>/build/k3/j784s4/release/bl31.bin
     $ export TEE=<path/to/optee>/out/arm-plat-k3/core/tee-pager_v2.bin
-    $ export BINMAN_INDIRS=<path/to/ti-linux-firmware>
+    $ export BINMAN_INDIRS="<path/to/ti-linux-firmware> /tmp/aquila-r5"
     $ make O=/tmp/aquila-a72 aquila-am69_a72_config
     $ make O=/tmp/aquila-a72
 
