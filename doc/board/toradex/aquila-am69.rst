@@ -103,11 +103,11 @@ Flash to eMMC
 
     => mmc dev 0 1
     => fatload mmc 1 ${loadaddr} tiboot3.bin
-    => mmc write ${loadaddr} 0x0 0x800
+    => mmc write ${loadaddr} 0x0 0x400
     => fatload mmc 1 ${loadaddr} tispl.bin
-    => mmc write ${loadaddr} 0x800 0x1000
+    => mmc write ${loadaddr} 0x400 0x1000
     => fatload mmc 1 ${loadaddr} u-boot.img
-    => mmc write ${loadaddr} 0x1800 0x2000
+    => mmc write ${loadaddr} 0x1400 0xc00
 
 As a convenience, instead of having to remember all those addresses and sizes,
 one may also use the update U-Boot wrappers:
