@@ -1511,7 +1511,7 @@
 		};
 
 		usb2: usb@4c200000 {
-			compatible = "fsl,imx95-usb";
+			compatible = "fsl,imx95-usb", "fsl,imx7d-usb", "fsl,imx27-usb";
 			reg = <0x0 0x4c200000 0x0 0x200>, <0x0 0x4c010000 0x0 0x30>;
 			interrupts = <GIC_SPI 176 IRQ_TYPE_LEVEL_HIGH>,
 				     <GIC_SPI 174 IRQ_TYPE_LEVEL_HIGH>;
@@ -1531,7 +1531,8 @@
 		};
 
 		usbmisc: usbmisc@4c200200 {
-			compatible = "fsl,imx95-usbmisc";
+			compatible = "fsl,imx95-usbmisc", "fsl,imx7d-usbmisc",
+				     "fsl,imx6q-usbmisc";
 			#index-cells = <1>;
 			reg = <0x0 0x4c200200 0x0 0x200>;
 		};
