@@ -1,90 +1,22 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /* Copyright (C) 2025 Toradex */
 
-#include <asm/arch-imx9/ccm_regs.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/sys_proto.h>
 #include <asm/global_data.h>
 #include <asm/io.h>
 #include <dt-bindings/power/fsl,imx95-power.h>
 #include <dwc3-uboot.h>
-#include <env.h>
 #include <fdt_support.h>
 #include <init.h>
 #include <linux/bitfield.h>
 #include <linux/delay.h>
-#include <linux/bitops.h>
 #include <scmi_protocols.h>
 #include <usb.h>
 
 #include "../common/tdx-cfg-block.h"
 
 DECLARE_GLOBAL_DATA_PTR;
-
-/* TODO: For the SMARC Dev Board, the USB TCPC code must be removed. */
-#ifdef TEST_ON_VERDIN_EVK
-#include "../../freescale/common/tcpc.h"
-
-#if IS_ENABLED(CONFIG_USB_TCPC)
-struct tcpc_port port;
-struct tcpc_port_config port_config = {
-	.i2c_bus = 6, /* i2c7 */
-	.addr = 0x52,
-	.port_type = TYPEC_PORT_DRP,
-	.disable_pd = true,
-};
-
-ulong tca_base;
-
-void tca_mux_select(enum typec_cc_polarity pol)
-{
-	u32 val;
-
-	if (!tca_base)
-		return;
-
-	/* reset XBar block */
-	setbits_le32(tca_base, BIT(9));
-
-	/* Set OP mode to System configure Mode */
-	clrbits_le32(tca_base + 0x10, 0x3);
-
-	val = readl(tca_base + 0x30);
-
-	WARN_ON((val & GENMASK(1, 0)) != 0x3);
-	WARN_ON((val & BIT(2)) != 0);
-	WARN_ON((val & BIT(3)) != 0);
-	WARN_ON((val & BIT(4)) != 0);
-
-	printf("tca pstate 0x%x\n", val);
-
-	setbits_le32(tca_base + 0x18, BIT(3));
-	udelay(1);
-
-	if (pol == TYPEC_POLARITY_CC1)
-		clrbits_le32(tca_base + 0x18, BIT(2));
-	else
-		setbits_le32(tca_base + 0x18, BIT(2));
-
-	udelay(1);
-
-	clrbits_le32(tca_base + 0x18, BIT(3));
-}
-
-static void setup_typec(void)
-{
-	int ret;
-
-	tca_base = USB1_BASE_ADDR + 0xfc000;
-
-	ret = tcpc_init(&port, port_config, &tca_mux_select);
-	if (ret) {
-		printf("%s: tcpc init failed, err=%d\n", __func__, ret);
-		return;
-	}
-}
-#endif
-#endif /* TEST_ON_VERDIN_EVK */
 
 #if IS_ENABLED(CONFIG_USB_DWC3)
 
@@ -121,6 +53,11 @@ static struct dwc3_device dwc3_device_data = {
 	.index = 0,
 	.power_down_scale = 2,
 };
+
+static int imx9_scmi_power_domain_enable(u32 domain, bool enable)
+{
+	return scmi_pwd_state_set(gd->arch.scmi_dev, 0, domain, enable ? 0 : BIT(30));
+}
 
 int dm_usb_gadget_handle_interrupts(struct udevice *dev)
 {
@@ -162,38 +99,6 @@ static void dwc3_nxp_usb_phy_init(struct dwc3_device *dwc3)
 	value &= ~(PHY_CTRL1_RESET | PHY_CTRL1_ATERESET);
 	writel(value, dwc3->base + PHY_CTRL1);
 }
-#endif
-
-static int imx9_scmi_power_domain_enable(u32 domain, bool enable)
-{
-	return scmi_pwd_state_set(gd->arch.scmi_dev, 0, domain, enable ? 0 : BIT(30));
-}
-
-int board_early_init_f(void)
-{
-	/* UART1: A55 */
-	init_uart_clk(0);
-
-	return 0;
-}
-
-int board_init(void)
-{
-	int ret;
-
-	ret = imx9_scmi_power_domain_enable(IMX95_PD_HSIO_TOP, true);
-	if (ret) {
-		printf("%s: Failed to enable PD HSIO for USB: %d\n", __func__, ret);
-		return ret;
-	}
-
-#ifdef TEST_ON_VERDIN_EVK
-	if (IS_ENABLED(CONFIG_USB_TCPC))
-		setup_typec();
-#endif
-
-	return 0;
-}
 
 int board_usb_init(int index, enum usb_init_type init)
 {
@@ -208,23 +113,9 @@ int board_usb_init(int index, enum usb_init_type init)
 
 			dwc3_nxp_usb_phy_init(&dwc3_device_data);
 
-#ifdef TEST_ON_VERDIN_EVK
-			if (IS_ENABLED(CONFIG_USB_TCPC)) {
-				ret = tcpc_setup_ufp_mode(&port);
-				if (ret)
-					goto error;
-			}
-#endif
-
 			ret = dwc3_uboot_init(&dwc3_device_data);
 			if (ret)
 				goto error;
-		break;
-		case USB_INIT_HOST:
-#ifdef TEST_ON_VERDIN_EVK
-			if (IS_ENABLED(CONFIG_USB_TCPC))
-				return tcpc_setup_dfp_mode(&port);
-#endif
 		break;
 		default:
 			return -1;
@@ -244,13 +135,7 @@ int board_usb_cleanup(int index, enum usb_init_type init)
 	if (index == 0) {
 		switch (init) {
 		case USB_INIT_DEVICE:
-				dwc3_uboot_exit(index);
-		break;
-		case USB_INIT_HOST:
-#ifdef TEST_ON_VERDIN_EVK
-			if (IS_ENABLED(CONFIG_USB_TCPC))
-				ret = tcpc_disable_src_vbus(&port);
-#endif
+			dwc3_uboot_exit(index);
 		break;
 		default:
 			return -1;
@@ -258,6 +143,28 @@ int board_usb_cleanup(int index, enum usb_init_type init)
 	}
 
 	return ret;
+}
+#endif
+
+int board_early_init_f(void)
+{
+	/* UART1: A55 */
+	init_uart_clk(0);
+
+	return 0;
+}
+
+int board_init(void)
+{
+	int ret;
+
+	ret = imx9_scmi_power_domain_enable(IMX95_PD_HSIO_TOP, true);
+	if (ret) {
+		printf("%s: Failed to enable PD HSIO for USB: %d\n", __func__, ret);
+		return ret;
+	}
+
+	return 0;
 }
 
 void board_quiesce_devices(void)
