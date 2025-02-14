@@ -107,6 +107,7 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_i2s1_mclk>;
 		clock-names = "mclk";
+		clocks = <&audio_refclk0>;
 		#sound-dai-cells = <0>;
 	};
 

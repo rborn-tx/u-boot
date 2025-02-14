@@ -733,13 +733,6 @@
 	};
 };
 
-#if 0
-/* Verdin I2S_1_MCLK */
-&audio_refclk0 {
-	assigned-clock-rates = <25000000>;
-};
-#endif
-
 &cpsw3g {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_rgmii1>;
