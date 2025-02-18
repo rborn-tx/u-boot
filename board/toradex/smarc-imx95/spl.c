@@ -53,6 +53,9 @@ void board_init_f(ulong dummy)
 	u32 state = 0;
 	int ret;
 
+	/* Clear the BSS. */
+	memset(__bss_start, 0, __bss_end - __bss_start);
+
 	if (IS_ENABLED(CONFIG_SPL_RECOVER_DATA_SECTION) && IS_ENABLED(CONFIG_SPL_BUILD))
 		spl_save_restore_data();
 
