@@ -192,8 +192,9 @@ static const struct cmd_whitelist_entry cmd_whitelist[] = {
 	{ { "fstype", ALL }, { CMD_CAT_SAFE, CMD_CAT_NEEDED } },
 	{ { "fstypes", ALL }, { CMD_CAT_SAFE } },
 	{ { "fuse", "read", ALL }, { CMD_CAT_FUSE_READ } },
-	{ { "fuse", "cmp", ALL }, { CMD_CAT_FUSE_READ } },
+	{ { "fuse", "cmp", ALL }, { CMD_CAT_FUSE_READ, CMD_CAT_NEEDED } }, /* Needed by fusing feature. */
 	{ { "fuse", "readm", ALL }, { CMD_CAT_FUSE_READ, CMD_CAT_MEM_WRITE } },
+	{ { "fuse", "readv", ALL }, { CMD_CAT_FUSE_READ, CMD_CAT_NEEDED } }, /* Needed by fusing feature. */
 	{ { "fuse", "sense", ALL }, { CMD_CAT_FUSE_READ } },
 	{ { "fuse", "prog", ALL }, { CMD_CAT_FUSE_WRITE } },
 	{ { "fuse", "override", ALL }, { CMD_CAT_FUSE_WRITE } },
@@ -351,7 +352,7 @@ static const struct cmd_whitelist_entry cmd_whitelist[] = {
 	{ { "set_fips_mode", ALL }, { CMD_CAT_SNVS_CONTROL } },
 	{ { "setenv", ALL }, { CMD_CAT_SAFE, CMD_CAT_NEEDED } },
 #ifdef CONFIG_CMD_SETEXPR
-	{ { "setexpr", ALL }, { CMD_CAT_SETEXPR, CMD_CAT_MEM_READ } },
+	{ { "setexpr", ALL }, { CMD_CAT_SETEXPR, CMD_CAT_MEM_READ, CMD_CAT_NEEDED } }, /* Needed by fusing feature. */
 #endif /* CONFIG_CMD_SETEXPR */
 	{ { "showvar", ALL }, { CMD_CAT_SAFE } },
 	{ { "size", ALL }, { CMD_CAT_SAFE, CMD_CAT_FS_DIAG } },
@@ -363,6 +364,7 @@ static const struct cmd_whitelist_entry cmd_whitelist[] = {
 	{ { "source", ALL }, { CMD_CAT_SAFE, CMD_CAT_NEEDED } },
 	{ { "sysboot", ALL }, { CMD_CAT_EXEC, CMD_CAT_MEM_WRITE } },
 	{ { "tamper_pin_cfg", ALL }, { CMD_CAT_SNVS_CONTROL } },
+	{ { "tdx_secboot_get", ALL }, { CMD_CAT_SAFE, CMD_CAT_NEEDED } },
 	{ { "test", ALL }, { CMD_CAT_SAFE, CMD_CAT_NEEDED } },
 	{ { "tftpboot", ALL }, { CMD_CAT_EXEC, CMD_CAT_MEM_WRITE } },
 	{ { "time", ALL }, { CMD_CAT_DIAG } },
