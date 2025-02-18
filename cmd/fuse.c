@@ -13,6 +13,8 @@
 #include <console.h>
 #include <fuse.h>
 #include <mapmem.h>
+#include <malloc.h>
+#include <env.h>
 #include <linux/errno.h>
 
 static int strtou32(const char *str, unsigned int base, u32 *result)
@@ -115,6 +117,45 @@ static int do_fuse(struct cmd_tbl *cmdtp, int flag, int argc,
 		}
 
 		unmap_sysmem(start);
+	} else if (!strcmp(op, "readv")) {
+		char *varname;
+		void *varval;
+		int len;
+
+		if (argc == 3)
+			cnt = 1;
+		else if (argc != 4 || strtou32(argv[3], 0, &cnt))
+			return CMD_RET_USAGE;
+
+		len = cnt * ((sizeof(val) * 2) + 1) + 1;
+		varname = argv[2];
+		varval = calloc(1, len);
+		if (!varval)
+			goto err;
+
+		IF_NOT_QUIET(printf("Reading bank %u len %u into '%s'\n",
+				    bank, cnt, varname));
+		ret = 0;
+		buf = varval;
+		for (i = 0; i < cnt; i++, word++) {
+			ret = fuse_read(bank, word, &val);
+			if (ret)
+				break;
+			if (i) {
+				*((char *) buf) = ' ';
+				buf++;
+			}
+			sprintf(buf, "%lx", (ulong) val);
+			buf += strlen(buf);
+		}
+
+		if (ret) {
+			free(varval);
+			goto err;
+		}
+
+		env_set(varname, varval);
+		free(varval);
 	} else if (!strcmp(op, "cmp")) {
 		if (argc != 3 || strtou32(argv[2], 0, &cmp))
 			return CMD_RET_USAGE;
@@ -205,6 +246,8 @@ U_BOOT_CMD(
 	"    at 'word'\n"
 	"fuse readm [-q] <bank> <word> <addr> [<cnt>] - read 1 or 'cnt' fuse words,\n"
 	"    starting at 'word' into memory at 'addr'\n"
+	"fuse readv [-q] <bank> <word> <name> [<cnt>] - read 1 or 'cnt' fuse words,\n"
+	"    starting at 'word' into variable 'name'\n"
 	"fuse sense [-q] <bank> <word> [<cnt>] - sense 1 or 'cnt' fuse words,\n"
 	"    starting at 'word'\n"
 	"fuse prog [-q] [-y] <bank> <word> <hexval> [<hexval>...] - program 1 or\n"
