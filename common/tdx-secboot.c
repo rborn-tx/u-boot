@@ -5,7 +5,7 @@
 
 #include <common.h>
 #include <command.h>
-#include <tdx-hab-utils.h>
+#include <tdx-secboot.h>
 
 #if defined(CONFIG_IMX_HAB)
 #include <asm/mach-imx/hab.h>
@@ -37,10 +37,27 @@ bool is_known_fail_event(const uint8_t *data, size_t len)
 }
 #endif
 
-/* Determines whether the device has been closed for HAB/AHAB.
- * Returns a 0 if device is closed, 1 if it is open.
- */
-static int tdx_secboot_dev_is_open(void)
+#ifdef CONFIG_TDX_SECBOOT_HARDENING_DBG
+/* Fake HAB status for debugging purposes. */
+static enum dbg_hab_status_t dbg_hab_status = DBG_HAB_STATUS_AUTO;
+
+int tdx_secboot_set_hab_status(enum dbg_hab_status_t status)
+{
+	switch (status) {
+	case DBG_HAB_STATUS_AUTO:
+	case DBG_HAB_STATUS_OPEN:
+	case DBG_HAB_STATUS_CLOSED:
+		dbg_hab_status = status;
+		break;
+	default:
+		return 1;
+	}
+
+	return 0;
+}
+#endif
+
+static int _tdx_secboot_dev_is_open(void)
 {
 #if defined(CONFIG_IMX_HAB)
 	if (imx_hab_is_enabled()) {
@@ -85,6 +102,28 @@ static int tdx_secboot_dev_is_open(void)
 	return 1;
 }
 
+/**
+ * tdx_secboot_dev_is_open - Determine if device is open (w.r.t. HAB/AHAB)
+ * Return: 1 if device is open or 0 otherwise.
+ *
+ * Determine if device is open for the purpose of the Toradex secure boot
+ * solution.
+ */
+int tdx_secboot_dev_is_open(void)
+{
+	int dev_open = _tdx_secboot_dev_is_open();
+
+#ifdef CONFIG_TDX_SECBOOT_HARDENING_DBG
+	/* Override results (for debugging). */
+	if (dbg_hab_status == DBG_HAB_STATUS_OPEN) {
+		dev_open = 1;
+	} else if (dbg_hab_status == DBG_HAB_STATUS_CLOSED) {
+		dev_open = 0;
+	}
+#endif
+	return dev_open;
+}
+
 /* Returns 0 if device is closed, 1 if it is open or on error.
  */
 static int do_tdx_is_closed(struct cmd_tbl *cmdtp, int flag, int argc,
@@ -95,9 +134,9 @@ static int do_tdx_is_closed(struct cmd_tbl *cmdtp, int flag, int argc,
 	if (argc != 1) {
 		cmd_usage(cmdtp);
 		return 1;
-	}	
+	}
 
-	retval = tdx_secboot_dev_is_open();
+	retval = _tdx_secboot_dev_is_open();
 
 	if (retval) {
 		printf("Device is open.\n");
