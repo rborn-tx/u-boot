@@ -18,7 +18,7 @@
 #include <asm/mach-imx/hab.h>
 #include <linux/arm-smccc.h>
 
-#include<tdx-hab-utils.h>
+#include <tdx-secboot.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
