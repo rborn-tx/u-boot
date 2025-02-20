@@ -581,7 +581,7 @@ static int cmd_call(struct cmd_tbl *cmdtp, int flag, int argc,
 
 #ifdef CONFIG_TDX_CMD_WHITELIST
 	if (!cmd_allowed_by_whitelist(cmdtp, argc, argv))
-		return CMD_RET_FAILURE;
+		return CMD_RET_BLOCKED;
 #endif
 	result = cmdtp->cmd_rep(cmdtp, flag, argc, argv, repeatable);
 	if (result)
