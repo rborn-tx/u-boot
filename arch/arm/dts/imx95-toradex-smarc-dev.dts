@@ -17,6 +17,21 @@
 		     "fsl,imx95";
 };
 
+/* SMARC GBE0 */
+&enetc_port0 {
+	status = "okay";
+};
+
+/* SMARC GBE1 */
+&enetc_port1 {
+	status = "okay";
+};
+
+/* SMARC MDIO, shared between all ethernet ports */
+&netc_emdio {
+	status = "okay";
+};
+
 /* SMARC SER1, used as the Linux Console */
 &lpuart1 {
 	status = "okay";
