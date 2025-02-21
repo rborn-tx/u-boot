@@ -146,6 +146,21 @@ int board_usb_cleanup(int index, enum usb_init_type init)
 }
 #endif
 
+static void netc_init(void)
+{
+	int ret;
+
+	ret = imx9_scmi_power_domain_enable(IMX95_PD_NETC, true);
+	if (ret) {
+		printf("%s: Failed to enable PD NETC for Ethernet: %d\n", __func__, ret);
+		return;
+	}
+
+	set_clk_netc(ENET_125MHZ);
+
+	pci_init();
+}
+
 int board_early_init_f(void)
 {
 	/* UART1: A55 */
@@ -164,6 +179,8 @@ int board_init(void)
 		return ret;
 	}
 
+	netc_init();
+
 	return 0;
 }
 
@@ -174,6 +191,11 @@ void board_quiesce_devices(void)
 	ret = imx9_scmi_power_domain_enable(IMX95_PD_HSIO_TOP, false);
 	if (ret)
 		printf("%s: Failed to disable PD HSIO for USB: %d\n", __func__, ret);
+
+	ret = imx9_scmi_power_domain_enable(IMX95_PD_NETC, false);
+	if (ret)
+		printf("%s: Failed to disable PD NETC for Ethernet: %d\n", __func__, ret);
+
 }
 
 int board_phys_sdram_size(phys_size_t *size)
