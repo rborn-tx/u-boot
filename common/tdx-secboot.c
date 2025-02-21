@@ -5,7 +5,10 @@
 
 #include <common.h>
 #include <command.h>
+#include <env.h>
+#include <malloc.h>
 #include <tdx-secboot.h>
+#include <tdx-harden.h>
 
 #if defined(CONFIG_IMX_HAB)
 #include <asm/mach-imx/hab.h>
@@ -95,7 +98,7 @@ static int _tdx_secboot_dev_is_open(void)
 		break;
 	}
 #else
-#error Neither CONFIG_IMX_HAB nor CONFIG_AHAB_BOOT is set
+#warning Neither CONFIG_IMX_HAB nor CONFIG_AHAB_BOOT is set
 #endif
 
 	/* Device is (assumed to be) open. */
@@ -124,28 +127,184 @@ int tdx_secboot_dev_is_open(void)
 	return dev_open;
 }
 
-/* Returns 0 if device is closed, 1 if it is open or on error.
- */
-static int do_tdx_is_closed(struct cmd_tbl *cmdtp, int flag, int argc,
-			    char *const argv[])
+typedef enum {
+	PROP_VAL_FALSE,
+	PROP_VAL_TRUE,
+	PROP_VAL_DYN = 0xff
+} secboot_prop_value_t;
+
+#define MAX_FLAG_NAME 5
+
+struct secboot_prop {
+	const char *name;  /* Full name. */
+	const char  flag[MAX_FLAG_NAME];  /* Short name (flag). */
+#if 0
+	const char *desc;  /* Description (not used atm). */
+#endif
+	secboot_prop_value_t value;  /* Static value. */
+};
+
+#define SECBOOT_PROP(_name, _flag, _desc, _value) \
+	{ _name, _flag, _value }
+
+static const struct secboot_prop secboot_props[] = {
+	SECBOOT_PROP("dev.closed", "clo", "device is closed",
+		     PROP_VAL_DYN),
+	SECBOOT_PROP("dev.closed-raw", "clor", "device is closed (low-level)",
+		     PROP_VAL_DYN),
+	SECBOOT_PROP("hdn.enabled", "hdn", "hardening enabled at runtime",
+		     PROP_VAL_DYN),
+	SECBOOT_PROP("bld.secboot", "sec", "built with secboot ((A)HAB/K3)",
+		     (CONFIG_IS_ENABLED(IMX_HAB) ||
+		      CONFIG_IS_ENABLED(AHAB_BOOT) ||
+		      CONFIG_IS_ENABLED(ARCH_K3)) ?
+		     PROP_VAL_TRUE : PROP_VAL_FALSE),
+	SECBOOT_PROP("bld.hdn.all", "bhdn", "built with all hardening enabled",
+		     (CONFIG_IS_ENABLED(TDX_SECBOOT_HARDENING) &&
+		      CONFIG_IS_ENABLED(TDX_CMD_WHITELIST) &&
+		      CONFIG_IS_ENABLED(TDX_BOOTM_PROTECTION) &&
+		      CONFIG_IS_ENABLED(TDX_CLI_PROTECTION) &&
+		      CONFIG_IS_ENABLED(TDX_BOOTARGS_PROTECTION)) ?
+		     PROP_VAL_TRUE : PROP_VAL_FALSE),
+	SECBOOT_PROP("bld.hdn.dbg", "bhdb", "built with hardening debug",
+		     (CONFIG_IS_ENABLED(TDX_SECBOOT_HARDENING) &&
+		      CONFIG_IS_ENABLED(TDX_SECBOOT_HARDENING_DBG)) ?
+		     PROP_VAL_TRUE : PROP_VAL_FALSE),
+	SECBOOT_PROP("bld.hdn.whitelist", "bwl", "built with whitelist feature",
+		     CONFIG_IS_ENABLED(TDX_CMD_WHITELIST) ?
+		     PROP_VAL_TRUE : PROP_VAL_FALSE),
+	SECBOOT_PROP("bld.hdn.bootm", "bbmp", "built with bootm protection",
+		     CONFIG_IS_ENABLED(TDX_BOOTM_PROTECTION) ?
+		     PROP_VAL_TRUE : PROP_VAL_FALSE),
+	SECBOOT_PROP("bld.hdn.cli", "bclp", "built with cli protection",
+		     CONFIG_IS_ENABLED(TDX_CLI_PROTECTION) ?
+		     PROP_VAL_TRUE : PROP_VAL_FALSE),
+	SECBOOT_PROP("bld.hdn.bootargs", "bbap", "built with bootargs protection",
+		     CONFIG_IS_ENABLED(TDX_BOOTARGS_PROTECTION) ?
+		     PROP_VAL_TRUE : PROP_VAL_FALSE),
+};
+
+#define SECBOOT_PROPS_LEN (sizeof(secboot_props) / sizeof(secboot_props[0]))
+
+static int _secboot_get_prop(const char *prop, int *val)
 {
-	int retval;
-
-	if (argc != 1) {
-		cmd_usage(cmdtp);
-		return 1;
+	int index;
+	for (index=0; index < SECBOOT_PROPS_LEN; index++) {
+		if (strcmp(prop, secboot_props[index].name))
+			continue;
+		/* Handle dynamic values. */
+		if (secboot_props[index].value == PROP_VAL_DYN) {
+			if (!strcmp(prop, "dev.closed")) {
+				*val = !tdx_secboot_dev_is_open();
+			} else if (!strcmp(prop, "dev.closed-raw")) {
+				*val = !_tdx_secboot_dev_is_open();
+			} else if (!strcmp(prop, "hdn.enabled")) {
+				*val = tdx_hardening_enabled();
+			} else {
+				return 1;
+			}
+			return 0;
+		}
+		/* Handle static values. */
+		*val = secboot_props[index].value;
+		return 0;
 	}
 
-	retval = _tdx_secboot_dev_is_open();
-
-	if (retval) {
-		printf("Device is open.\n");
-	} else {
-		printf("Device is closed.\n");
-	}
-
-	return retval;
+	*val = 0xff;
+	return 1; /* not found */
 }
 
-U_BOOT_CMD(tdx_is_closed, CONFIG_SYS_MAXARGS, 1, do_tdx_is_closed,
-	   "Checks whether device has been closed for HAB/AHAB","");
+static int do_secboot_get(struct cmd_tbl *cmdtp, int flag, int argc,
+			  char *const argv[])
+{
+	const char *prop = NULL;
+	const char *name = NULL;
+
+	if (argc <= 1) {
+		/* No parameters: success; this can be used to check the */
+		/* existence of the command. */
+		return CMD_RET_SUCCESS;
+	} else if (argc > 3) {
+		return CMD_RET_USAGE;
+	}
+
+	prop = cmd_arg1(argc, argv);
+	name = cmd_arg2(argc, argv);
+
+	if (prop && !name && !strcmp(prop, "list")) {
+		int index;
+		printf("Available properties (flags):\n");
+		for (index=0; index < SECBOOT_PROPS_LEN; index++) {
+			int ret, val;
+			ret = _secboot_get_prop(
+				secboot_props[index].name, &val);
+			printf("- %s (%s): %s\n",
+			       secboot_props[index].name,
+			       secboot_props[index].flag,
+			       ret == 0 ? (val ? "1" : "0") : "unknown");
+		}
+		return CMD_RET_SUCCESS;
+	}
+
+	if (prop && !strcmp(prop, "flags")) {
+		int index;
+		char *ptr;
+		char *buf = calloc(sizeof(char),
+				   SECBOOT_PROPS_LEN * (MAX_FLAG_NAME + 2) + 1);
+		if (!buf)
+			return CMD_RET_FAILURE;
+		ptr = buf;
+		for (index=0; index < SECBOOT_PROPS_LEN; index++) {
+			int ret, val;
+			ret = _secboot_get_prop(
+				secboot_props[index].name, &val);
+			/* separator */
+			if (index)
+				*ptr++ = ' ';
+			/* append a +/-/? to indicate true/false/unknown */
+			sprintf(ptr, "%s%c",
+				secboot_props[index].flag,
+				ret == 0 ? (val ? '+' : '-') : '?');
+			ptr += strlen(ptr);
+		}
+		if (name) {
+			env_set(name, buf);
+		} else {
+			printf("%s\n", buf);
+		}
+		free(buf);
+		return CMD_RET_SUCCESS;
+	}
+
+	if (prop) {
+		int ret, val;
+		/* Return an exit code of 16 to indicate an unknown property. */
+		if (_secboot_get_prop(prop, &val) != 0) {
+			eprintf("Unknown property: %s\n", prop);
+			return 16;
+		}
+		if (name) {
+			env_set_ulong(name, (ulong) val);
+		} else {
+			printf("%s: %d\n", prop, val);
+		}
+		return CMD_RET_SUCCESS;
+	}
+
+	return CMD_RET_USAGE;
+}
+ 
+U_BOOT_CMD(
+	tdx_secboot_get, 5, 0, do_secboot_get,
+	"show/read boolean property relating to secure boot",
+	"list\n"
+	"    - list available properties\n"
+	"\n"
+	"tdx_secboot_get flags [envvar]\n"
+	"    - read all variables in short form\n"
+	"\n"
+	"tdx_secboot_get prop [envvar]\n"
+	"    - read single variable\n"
+	"      with 'envvar': store property value into variable\n"
+	"      exit code 16 denotes an unknown property"
+);
