@@ -9,13 +9,8 @@
 #include <log.h>
 #include <fdt_support.h>
 #include <asm/global_data.h>
+#include <tdx-secboot.h>
 #include <tdx-harden.h>
-
-#if defined(CONFIG_IMX_HAB)
-#include <asm/mach-imx/hab.h>
-#elif defined(CONFIG_AHAB_BOOT)
-#include <firmware/imx/sci/sci.h>
-#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -23,13 +18,6 @@ DECLARE_GLOBAL_DATA_PTR;
 static const char secboot_node_path[] = TDX_SECBOOT_NODE_PATH;
 
 #ifdef CONFIG_TDX_SECBOOT_HARDENING_DBG
-/* Fake HAB status for debugging purposes. */
-enum dbg_hab_status_t {
-	DBG_HAB_STATUS_AUTO,
-	DBG_HAB_STATUS_OPEN,
-	DBG_HAB_STATUS_CLOSED,
-};
-
 /* Fake hardening status for debugging purposes. */
 enum dbg_hdn_status_t {
 	DBG_HDN_STATUS_AUTO,
@@ -37,8 +25,7 @@ enum dbg_hdn_status_t {
 	DBG_HDN_STATUS_ENABLED,
 };
 
-enum dbg_hab_status_t dbg_hab_status = DBG_HAB_STATUS_AUTO;
-enum dbg_hdn_status_t dbg_hdn_status = DBG_HDN_STATUS_AUTO;
+static enum dbg_hdn_status_t dbg_hdn_status = DBG_HDN_STATUS_AUTO;
 #endif
 
 static int _tdx_hardening_enabled(void)
@@ -70,51 +57,6 @@ static int _tdx_hardening_enabled(void)
 	return 1;
 }
 
-static int _tdx_secboot_dev_is_open(void)
-{
-#if defined(CONFIG_IMX_HAB)
-	if (imx_hab_is_enabled()) {
-		/* Device is closed (OR some error occurred). */
-		/* Notice that imx_hab_is_enabled() returns bool as per its
-		 * prototype but checking its code it can return a negative
-		 * value in case of fuse read errors. */
-		/* TODO: Evaluate if this is the best we can do here. */
-		return 0;
-	}
-#elif defined(CONFIG_AHAB_BOOT)
-	u16 lc;
-	if (sc_seco_chip_info(-1, &lc, NULL, NULL, NULL)) {
-		/* Some error occurred. */
-		return 0;
-	}
-	switch (lc) {
-	case 0x1:	/* Pristine */
-	case 0x2:	/* Fab */
-	case 0x8:	/* Open */
-		debug("Device is in a pre NXP-closed state!\n");
-		break;
-	case 0x20:	/* NXP closed */
-		debug("Device is in a NXP-closed state!\n");
-		break;
-	case 0x80:	/* OEM closed */
-		debug("Device is in OEM-closed state!\n");
-		return 0;
-	case 0x100:	/* Partial field return */
-	case 0x200:	/* Full field return */
-	case 0x400:	/* No return */
-		debug("Device is in some 'return' state!\n");
-		return 1;
-	default:	/* Unknown */
-		break;
-	}
-#else
-#error Neither CONFIG_IMX_HAB nor CONFIG_AHAB_BOOT is set
-#endif
-
-	/* Device is (assumed to be) open. */
-	return 1;
-}
-
 /**
  * tdx_hardening_enabled - Determine if Toradex U-Boot hardening is enabled
  * Return: 1 if hardening is enabled or 0 otherwise.
@@ -138,29 +80,7 @@ int tdx_hardening_enabled(void)
 	return hdn_enabled;
 }
 
-/**
- * tdx_secboot_dev_is_open - Determine if device is open (w.r.t. HAB/AHAB)
- * Return: 1 if device is open or 0 otherwise.
- *
- * Determine if device is open for the purpose of the Toradex U-Boot
- * hardening.
- */
-int tdx_secboot_dev_is_open(void)
-{
-	int dev_open = _tdx_secboot_dev_is_open();
-
-#ifdef CONFIG_TDX_SECBOOT_HARDENING_DBG
-	/* Override results (for debugging). */
-	if (dbg_hab_status == DBG_HAB_STATUS_OPEN) {
-		dev_open = 1;
-	} else if (dbg_hab_status == DBG_HAB_STATUS_CLOSED) {
-		dev_open = 0;
-	}
-#endif
-	return dev_open;
-}
-
-static int hardening_info(void)
+static int show_hardening_info(void)
 {
 	int hdn_enabled = tdx_hardening_enabled();
 	int dev_open = tdx_secboot_dev_is_open();
@@ -172,28 +92,32 @@ static int hardening_info(void)
 }
 
 #ifdef CONFIG_TDX_SECBOOT_HARDENING_DBG
-static int hardening_set_hab_status(int argc, char *const argv[])
+static int set_hab_status(int argc, char *const argv[])
 {
 	const char *str_subcmd;
+	enum dbg_hab_status_t status = DBG_HAB_STATUS_AUTO;
 
 	if (argc < 1)
 		return CMD_RET_USAGE;
 
 	str_subcmd = argv[0];
 	if (!strcmp(str_subcmd, "auto")) {
-		dbg_hab_status = DBG_HAB_STATUS_AUTO;
+		status = DBG_HAB_STATUS_AUTO;
 	} else if (!strcmp(str_subcmd, "open")) {
-		dbg_hab_status = DBG_HAB_STATUS_OPEN;
+		status = DBG_HAB_STATUS_OPEN;
 	} else if (!strcmp(str_subcmd, "closed")) {
-		dbg_hab_status = DBG_HAB_STATUS_CLOSED;
+		status = DBG_HAB_STATUS_CLOSED;
 	} else {
 		return CMD_RET_USAGE;
 	}
 
+	if (tdx_secboot_set_hab_status(status))
+		return CMD_RET_FAILURE;
+
 	return CMD_RET_SUCCESS;
 }
 
-static int hardening_set_hdn_status(int argc, char *const argv[])
+static int set_hardening_status(int argc, char *const argv[])
 {
 	const char *str_subcmd;
 
@@ -227,12 +151,12 @@ static int do_hardening(struct cmd_tbl *cmdtp, int flag, int argc,
 	argv += 2;
 
 	if (!strcmp(str_cmd, "info")) {
-		return hardening_info();
+		return show_hardening_info();
 #ifdef CONFIG_TDX_SECBOOT_HARDENING_DBG
 	} else if (!strcmp(str_cmd, "set-hab-status")) {
-		return hardening_set_hab_status(argc, argv);
+		return set_hab_status(argc, argv);
 	} else if (!strcmp(str_cmd, "set-hdn-status")) {
-		return hardening_set_hdn_status(argc, argv);
+		return set_hardening_status(argc, argv);
 #endif
 	}
 
