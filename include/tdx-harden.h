@@ -36,7 +36,15 @@ struct cmd_tbl;
 
 int cmd_allowed_by_whitelist(struct cmd_tbl *cmd, int argc, char *const argv[]);
 
-int tdx_secboot_dev_is_open(void);
+#ifdef CONFIG_TDX_SECBOOT_HARDENING
 int tdx_hardening_enabled(void);
+#else
+static inline int tdx_hardening_enabled(void) {
+	return 0;
+}
+#endif
+
+/* from tdx-secboot (included here for convenience) */
+int tdx_secboot_dev_is_open(void);
 
 #endif	/* __TDX_HARDEN_H */
