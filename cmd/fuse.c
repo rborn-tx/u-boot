@@ -13,6 +13,8 @@
 #include <console.h>
 #include <fuse.h>
 #include <mapmem.h>
+#include <malloc.h>
+#include <env.h>
 #include <linux/errno.h>
 
 static int strtou32(const char *str, unsigned int base, u32 *result)
@@ -45,14 +47,30 @@ static int do_fuse(struct cmd_tbl *cmdtp, int flag, int argc,
 		   char *const argv[])
 {
 	const char *op = cmd_arg1(argc, argv);
-	int confirmed = argc >= 3 && !strcmp(argv[2], "-y");
+	int confirmed = 0, quiet = 0;
 	u32 bank, word, cnt, val, cmp;
 	ulong addr;
 	void *buf, *start;
 	int ret, i;
 
-	argc -= 2 + confirmed;
-	argv += 2 + confirmed;
+#define IF_NOT_QUIET(stmt) do { if (!quiet) { stmt; } } while(0)
+
+	if (argc >= 2) {
+		argc -= 2;
+		argv += 2;
+	}
+
+	/* Handle common switches. */
+	while (argc) {
+		if (!strcmp(argv[0], "-y"))
+			confirmed = 1;
+		else if (!strcmp(argv[0], "-q"))
+			quiet = 1;
+		else
+			break;
+		argc--;
+		argv++;
+	}
 
 	if (argc < 2 || strtou32(argv[0], 0, &bank) ||
 			strtou32(argv[1], 0, &word))
@@ -64,18 +82,18 @@ static int do_fuse(struct cmd_tbl *cmdtp, int flag, int argc,
 		else if (argc != 3 || strtou32(argv[2], 0, &cnt))
 			return CMD_RET_USAGE;
 
-		printf("Reading bank %u:\n", bank);
+		IF_NOT_QUIET(printf("Reading bank %u:\n", bank));
 		for (i = 0; i < cnt; i++, word++) {
 			if (!(i % 4))
-				printf("\nWord 0x%.8x:", word);
+				IF_NOT_QUIET(printf("\nWord 0x%.8x:", word));
 
 			ret = fuse_read(bank, word, &val);
 			if (ret)
 				goto err;
 
-			printf(" %.8x", val);
+			IF_NOT_QUIET(printf(" %.8x", val));
 		}
-		putc('\n');
+		IF_NOT_QUIET(putc('\n'));
 	} else if (!strcmp(op, "readm")) {
 		if (argc == 3)
 			cnt = 1;
@@ -87,7 +105,8 @@ static int do_fuse(struct cmd_tbl *cmdtp, int flag, int argc,
 		start = map_sysmem(addr, 4);
 		buf = start;
 
-		printf("Reading bank %u len %u to 0x%lx\n", bank, cnt, addr);
+		IF_NOT_QUIET(printf("Reading bank %u len %u to 0x%lx\n",
+				    bank, cnt, addr));
 		for (i = 0; i < cnt; i++, word++) {
 			ret = fuse_read(bank, word, &val);
 			if (ret)
@@ -98,42 +117,81 @@ static int do_fuse(struct cmd_tbl *cmdtp, int flag, int argc,
 		}
 
 		unmap_sysmem(start);
+	} else if (!strcmp(op, "readv")) {
+		char *varname;
+		void *varval;
+		int len;
+
+		if (argc == 3)
+			cnt = 1;
+		else if (argc != 4 || strtou32(argv[3], 0, &cnt))
+			return CMD_RET_USAGE;
+
+		len = cnt * ((sizeof(val) * 2) + 1) + 1;
+		varname = argv[2];
+		varval = calloc(1, len);
+		if (!varval)
+			goto err;
+
+		IF_NOT_QUIET(printf("Reading bank %u len %u into '%s'\n",
+				    bank, cnt, varname));
+		ret = 0;
+		buf = varval;
+		for (i = 0; i < cnt; i++, word++) {
+			ret = fuse_read(bank, word, &val);
+			if (ret)
+				break;
+			if (i) {
+				*((char *) buf) = ' ';
+				buf++;
+			}
+			sprintf(buf, "%lx", (ulong) val);
+			buf += strlen(buf);
+		}
+
+		if (ret) {
+			free(varval);
+			goto err;
+		}
+
+		env_set(varname, varval);
+		free(varval);
 	} else if (!strcmp(op, "cmp")) {
 		if (argc != 3 || strtou32(argv[2], 0, &cmp))
 			return CMD_RET_USAGE;
 
-		printf("Comparing bank %u:\n", bank);
-		printf("\nWord 0x%.8x:", word);
-		printf("\nValue 0x%.8x:", cmp);
+		IF_NOT_QUIET(printf("Comparing bank %u:\n", bank));
+		IF_NOT_QUIET(printf("\nWord 0x%.8x:", word));
+		IF_NOT_QUIET(printf("\nValue 0x%.8x:", cmp));
 
 		ret = fuse_read(bank, word, &val);
 		if (ret)
 			goto err;
 
-		printf("0x%.8x\n", val);
+		IF_NOT_QUIET(printf("0x%.8x\n", val));
 		if (val != cmp) {
-			printf("failed\n");
+			IF_NOT_QUIET(printf("failed\n"));
 			return CMD_RET_FAILURE;
 		}
-		printf("passed\n");
+		IF_NOT_QUIET(printf("passed\n"));
 	} else if (!strcmp(op, "sense")) {
 		if (argc == 2)
 			cnt = 1;
 		else if (argc != 3 || strtou32(argv[2], 0, &cnt))
 			return CMD_RET_USAGE;
 
-		printf("Sensing bank %u:\n", bank);
+		IF_NOT_QUIET(printf("Sensing bank %u:\n", bank));
 		for (i = 0; i < cnt; i++, word++) {
 			if (!(i % 4))
-				printf("\nWord 0x%.8x:", word);
+				IF_NOT_QUIET(printf("\nWord 0x%.8x:", word));
 
 			ret = fuse_sense(bank, word, &val);
 			if (ret)
 				goto err;
 
-			printf(" %.8x", val);
+			IF_NOT_QUIET(printf(" %.8x", val));
 		}
-		putc('\n');
+		IF_NOT_QUIET(putc('\n'));
 	} else if (!strcmp(op, "prog")) {
 		if (argc < 3)
 			return CMD_RET_USAGE;
@@ -142,8 +200,9 @@ static int do_fuse(struct cmd_tbl *cmdtp, int flag, int argc,
 			if (strtou32(argv[i], 16, &val))
 				return CMD_RET_USAGE;
 
-			printf("Programming bank %u word 0x%.8x to 0x%.8x...\n",
-					bank, word, val);
+			IF_NOT_QUIET(printf("Programming bank %u word "
+					    "0x%.8x to 0x%.8x...\n",
+					    bank, word, val));
 			if (!confirmed && !confirm_prog())
 				return CMD_RET_FAILURE;
 			ret = fuse_prog(bank, word, val);
@@ -158,8 +217,9 @@ static int do_fuse(struct cmd_tbl *cmdtp, int flag, int argc,
 			if (strtou32(argv[i], 16, &val))
 				return CMD_RET_USAGE;
 
-			printf("Overriding bank %u word 0x%.8x with "
-					"0x%.8x...\n", bank, word, val);
+			IF_NOT_QUIET(printf("Overriding bank %u word "
+					    "0x%.8x with 0x%.8x...\n",
+					    bank, word, val));
 			ret = fuse_override(bank, word, val);
 			if (ret)
 				goto err;
@@ -171,23 +231,27 @@ static int do_fuse(struct cmd_tbl *cmdtp, int flag, int argc,
 	return 0;
 
 err:
-	puts("ERROR\n");
+	IF_NOT_QUIET(puts("ERROR\n"));
 	return CMD_RET_FAILURE;
+
+#undef IF_NOT_QUIET
 }
 
 U_BOOT_CMD(
 	fuse, CONFIG_SYS_MAXARGS, 0, do_fuse,
 	"Fuse sub-system",
-	     "read <bank> <word> [<cnt>] - read 1 or 'cnt' fuse words,\n"
+	     "read [-q] <bank> <word> [<cnt>] - read 1 or 'cnt' fuse words,\n"
 	"    starting at 'word'\n"
-	"fuse cmp <bank> <word> <hexval> - compare 'hexval' to fuse\n"
+	"fuse cmp [-q] <bank> <word> <hexval> - compare 'hexval' to fuse\n"
 	"    at 'word'\n"
-	"fuse readm <bank> <word> <addr> [<cnt>] - read 1 or 'cnt' fuse words,\n"
+	"fuse readm [-q] <bank> <word> <addr> [<cnt>] - read 1 or 'cnt' fuse words,\n"
 	"    starting at 'word' into memory at 'addr'\n"
-	"fuse sense <bank> <word> [<cnt>] - sense 1 or 'cnt' fuse words,\n"
+	"fuse readv [-q] <bank> <word> <name> [<cnt>] - read 1 or 'cnt' fuse words,\n"
+	"    starting at 'word' into variable 'name'\n"
+	"fuse sense [-q] <bank> <word> [<cnt>] - sense 1 or 'cnt' fuse words,\n"
 	"    starting at 'word'\n"
-	"fuse prog [-y] <bank> <word> <hexval> [<hexval>...] - program 1 or\n"
+	"fuse prog [-q] [-y] <bank> <word> <hexval> [<hexval>...] - program 1 or\n"
 	"    several fuse words, starting at 'word' (PERMANENT)\n"
-	"fuse override <bank> <word> <hexval> [<hexval>...] - override 1 or\n"
+	"fuse override [-q] <bank> <word> <hexval> [<hexval>...] - override 1 or\n"
 	"    several fuse words, starting at 'word'"
 );

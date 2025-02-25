@@ -17,6 +17,7 @@
 #include <malloc.h>
 #include <mapmem.h>
 #include <linux/sizes.h>
+#include <tdx-harden.h>
 #include "printf.h"
 
 #define MAX_STR_LEN 128
@@ -37,6 +38,18 @@ struct expr_arg {
 static int get_arg(char *s, int w, struct expr_arg *argp)
 {
 	struct expr_arg arg;
+
+	if (s[0] == '*' && tdx_hardening_enabled()) {
+		if (tdx_secboot_dev_is_open()) {
+			eprintf("## WARNING: Allowing execution of setexpr '*' "
+				"operator while device is open; this would be "
+				"denied in closed state.\n");
+		} else {
+			eprintf("## WARNING: Execution of setexpr command "
+				"denied due to use of '*' operator.\n");
+			return -EINVAL;
+		}
+	}
 
 	/*
 	 * If the parameter starts with a '*' then assume it is a pointer to
@@ -322,6 +335,18 @@ static int regex_sub_var(const char *name, const char *r, const char *s,
 	int len;
 	int ret;
 
+	if (tdx_hardening_enabled()) {
+		if (tdx_secboot_dev_is_open()) {
+			eprintf("## WARNING: Allowing execution of setexpr "
+				"regex command (sub/gsub) while device is "
+				"open; this would be denied in closed state.\n");
+		} else {
+			eprintf("## WARNING: Execution of setexpr regex "
+				"command denied in closed state.\n");
+			return 1;
+		}
+	}
+
 	if (!name)
 		return 1;
 
@@ -396,6 +421,19 @@ static int do_setexpr(struct cmd_tbl *cmdtp, int flag, int argc,
 
 		if (argc == 3)
 			return CMD_RET_USAGE;
+
+		if (tdx_hardening_enabled()) {
+			if (tdx_secboot_dev_is_open()) {
+				eprintf("## WARNING: Allowing execution of "
+					"setexpr fmt command while device is "
+					"open; this would be denied in closed "
+					"state.\n");
+			} else {
+				eprintf("## WARNING: Execution of setexpr fmt "
+					"command denied in closed state.\n");
+				return CMD_RET_FAILURE;
+			}
+		}
 
 		result = printf_setexpr(str, sizeof(str), argc - 3, &argv[3]);
 		if (result)

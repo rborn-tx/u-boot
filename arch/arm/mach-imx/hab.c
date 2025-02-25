@@ -18,6 +18,8 @@
 #include <asm/mach-imx/hab.h>
 #include <linux/arm-smccc.h>
 
+#include <tdx-secboot.h>
+
 DECLARE_GLOBAL_DATA_PTR;
 
 #define ALIGN_SIZE		0x1000
@@ -454,6 +456,7 @@ static int get_hab_status(void)
 	size_t bytes = sizeof(event_data); /* Event size in bytes */
 	enum hab_config config = 0;
 	enum hab_state state = 0;
+	int retval = 0;
 
 	if (imx_hab_is_enabled())
 		puts("\nSecure boot enabled\n");
@@ -476,6 +479,13 @@ static int get_hab_status(void)
 			puts("\n");
 			bytes = sizeof(event_data);
 			index++;
+#ifdef IGNORE_KNOWN_HAB_EVENTS
+                        if(!is_known_fail_event(event_data, bytes)) {
+				retval = 1;
+			}
+#else
+			retval = 1;
+#endif
 		}
 	}
 	/* Display message if no HAB events are found */
@@ -484,7 +494,7 @@ static int get_hab_status(void)
 		       config, state);
 		puts("No HAB Events Found!\n\n");
 	}
-	return 0;
+	return retval;
 }
 
 #ifdef CONFIG_MX7ULP
@@ -562,6 +572,7 @@ static int get_hab_status_m4(void)
 static int do_hab_status(struct cmd_tbl *cmdtp, int flag, int argc,
 			 char *const argv[])
 {
+	int retval;
 #ifdef CONFIG_MX7ULP
 	if ((argc > 2)) {
 		cmd_usage(cmdtp);
@@ -578,10 +589,10 @@ static int do_hab_status(struct cmd_tbl *cmdtp, int flag, int argc,
 		return 1;
 	}
 
-	get_hab_status();
+	retval = get_hab_status();
 #endif
 
-	return 0;
+	return retval;
 }
 
 static ulong get_image_ivt_offset(ulong img_addr)
