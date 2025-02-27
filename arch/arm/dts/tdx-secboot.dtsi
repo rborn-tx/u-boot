@@ -11,6 +11,9 @@
 			bootloader-commands {
 				allow-open = <CMD_CAT_ALL>;
 				allow-closed = <CMD_CAT_ALL_SAFE>;
+				// deny-open = <CMD_CAT_ALL_UNSAFE>;
+				// deny-closed = <CMD_CAT_ALL_UNSAFE>;
+				// needed = <CMD_CAT_NEEDED>;
 			};
 		};
 	};
