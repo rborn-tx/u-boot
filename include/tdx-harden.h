@@ -14,10 +14,10 @@
  *             disabled;                  [optional: disable Toradex hardening]
  *             bootloader-commands {
  *                 allow-open = <CMD_CAT_ALL>;
- *                 allow-closed = <CMD_CAT_NEEDED CMD_CAT_SAFE>;
+ *                 allow-closed = <CMD_CAT_ALL_SAFE>;
  *                 deny-open = <CMD_CAT_ALL_UNSAFE>;    [optional, discouraged]
  *                 deny-closed = <CMD_CAT_ALL_UNSAFE>;  [optional, discouraged]
- *                 needed = <CMD_CAT_NEEDED>            [optional, discouraged]
+ *                 needed = <CMD_CAT_NEEDED>;           [optional, discouraged]
  *             };
  *         };
  *     };
