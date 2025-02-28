@@ -18,7 +18,7 @@
 #include <asm/mach-imx/hab.h>
 #include <linux/arm-smccc.h>
 
-#include<tdx-hab-utils.h>
+#include <tdx-hab-utils.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -480,7 +480,7 @@ static int get_hab_status(void)
 			bytes = sizeof(event_data);
 			index++;
 #ifdef IGNORE_KNOWN_HAB_EVENTS
-                        if(!is_known_fail_event(event_data, bytes)) {
+			if (!is_known_fail_event(event_data, bytes)) {
 				retval = 1;
 			}
 #else
