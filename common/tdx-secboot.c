@@ -79,7 +79,7 @@ static int _tdx_secboot_dev_is_open(void)
 		return 0;
 	}
 #else
-#warning Neither CONFIG_IMX_HAB nor CONFIG_AHAB_BOOT is set
+#warning None of CONFIG_IMX_HAB/CONFIG_AHAB_BOOT/CONFIG_ARCH_K3 is set
 #endif
 
 	/* Device is (assumed to be) open. */
