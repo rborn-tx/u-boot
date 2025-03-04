@@ -3,9 +3,21 @@
 
 #include "imx95-u-boot.dtsi"
 
+&lpi2c4 {
+	bootph-pre-ram;
+};
+
 &lpuart1 {
 	clocks = <&scmi_clk IMX95_CLK_LPUART1>, <&scmi_clk IMX95_CLK_LPUART1>;
 	clock-names = "ipg", "per";
+	bootph-pre-ram;
+};
+
+&pinctrl_lpi2c4 {
+	bootph-pre-ram;
+};
+
+&pinctrl_lpi2c4_gpio {
 	bootph-pre-ram;
 };
 

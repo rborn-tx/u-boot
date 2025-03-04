@@ -37,6 +37,19 @@
 	phy-mode = "rgmii-id";
 };
 
+/* SMARC I2C_CAM0 */
+&lpi2c4 {
+	pinctrl-names = "default", "gpio";
+	pinctrl-0 = <&pinctrl_lpi2c4>;
+	pinctrl-1 = <&pinctrl_lpi2c4_gpio>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+	clock-frequency = <400000>;
+	scl-gpios = <&gpio2 31 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
+	sda-gpios = <&gpio2 30 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
+	status = "okay";
+};
+
 /* SMARC MDIO, shared between all ethernet ports */
 &netc_emdio {
 	pinctrl-names = "default";
@@ -132,6 +145,18 @@
 	/* SMARC GBE1_SDP */
 	pinctrl_enetc1_1588_tmr: enetc11588tmrgrp {
 		fsl,pins = < IMX95_PAD_CCM_CLKO4__NETCMIX_TOP_NETC_TMR_1588_PP2	0x51e>; /* SMARC P5 - GBE1_SDP */
+	};
+
+	/* SMARC I2C_CAM0 */
+	pinctrl_lpi2c4: lpi2c4grp {
+		fsl,pins = <IMX95_PAD_GPIO_IO31__LPI2C4_SCL	0x40001b9e>, /* SMARC S5 - I2C_CAM0_CK  */
+			   <IMX95_PAD_GPIO_IO30__LPI2C4_SDA	0x40001b9e>; /* SMARC S7 - I2C_CAM0_DAT */
+	};
+
+	/* SMARC I2C_CAM0 as GPIOs */
+	pinctrl_lpi2c4_gpio: lpi2c4gpiogrp {
+		fsl,pins = <IMX95_PAD_GPIO_IO31__GPIO2_IO_BIT31	0x40001b9e>, /* SMARC S5 - I2C_CAM0_CK  */
+			   <IMX95_PAD_GPIO_IO30__GPIO2_IO_BIT30	0x40001b9e>; /* SMARC S7 - I2C_CAM0_DAT */
 	};
 
 	/* SMARC SER1, used as the Linux Console */
