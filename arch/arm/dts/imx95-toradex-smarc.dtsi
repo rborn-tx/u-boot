@@ -19,6 +19,30 @@
 		ethernet0 = &enetc_port0;
 		ethernet1 = &enetc_port1;
 	};
+
+	connector {
+		compatible = "gpio-usb-b-connector", "usb-b-connector";
+		/* SMARC P64 - USB0_OTG_ID */
+		id-gpios = <&som_gpio_expander_0 3 GPIO_ACTIVE_HIGH>;
+		label = "USB0";
+		self-powered;
+		type = "micro";
+		vbus-supply = <&reg_usb0_vbus>;
+
+		port {
+			usb_dr_connector: endpoint {
+				remote-endpoint = <&usb0_otg_id>;
+			};
+		};
+	};
+
+	reg_usb0_vbus: regulator-usb0-vbus {
+		compatible = "regulator-fixed";
+		/* SMARC P62 - USB0_EN_OC# */
+		gpios = <&som_gpio_expander_0 4 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		regulator-name = "USB0_EN_OC#";
+	};
 };
 
 /* SMARC GBE0 */
@@ -40,14 +64,34 @@
 /* SMARC I2C_CAM0 */
 &lpi2c4 {
 	pinctrl-names = "default", "gpio";
-	pinctrl-0 = <&pinctrl_lpi2c4>;
-	pinctrl-1 = <&pinctrl_lpi2c4_gpio>;
+	pinctrl-0 = <&pinctrl_lpi2c4>, <&pinctrl_ctrl_io_exp_int_b>;
+	pinctrl-1 = <&pinctrl_lpi2c4_gpio>, <&pinctrl_ctrl_io_exp_int_b>;
 	#address-cells = <1>;
 	#size-cells = <0>;
 	clock-frequency = <400000>;
 	scl-gpios = <&gpio2 31 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
 	sda-gpios = <&gpio2 30 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
 	status = "okay";
+
+	som_gpio_expander_0: gpio-expander@20 {
+		compatible = "nxp,pcal6408";
+		reg = <0x20>;
+		#interrupt-cells = <2>;
+		interrupt-controller;
+		interrupt-parent = <&gpio1>;
+		interrupts = <14 IRQ_TYPE_LEVEL_LOW>;
+		#gpio-cells = <2>;
+		gpio-controller;
+		gpio-line-names =
+			"SMARC_PCIE_WAKE#", /* 0 */
+			"SMARC_PCIE_B_RST#",
+			"SMARC_PCIE_A_RST#",
+			"SMARC_USB0_OTG_ID",
+			"SMARC_USB0_EN", /* SMARC USB0_EN_OC# - Open Drain Output */
+			"SMARC_USB0_OC#", /* SMARC USB0_EN_OC# - Over-Current Sense Input */
+			"",
+			"SMARC_PCIE_C_RST#";
+	};
 };
 
 /* SMARC MDIO, shared between all ethernet ports */
@@ -87,6 +131,23 @@
 	status = "okay";
 };
 
+/* SMARC USB0 */
+&usb2 {
+	adp-disable;
+	dr_mode = "otg";
+	hnp-disable;
+	srp-disable;
+	usb-role-switch;
+	vbus-supply = <&reg_usb0_vbus>;
+
+	port {
+		usb0_otg_id: endpoint {
+			remote-endpoint = <&usb_dr_connector>;
+		};
+	};
+};
+
+/* SMARC USB1..4  */
 &usb3_dwc3 {
 	adp-disable;
 	dr_mode = "otg";
@@ -145,6 +206,10 @@
 	/* SMARC GBE1_SDP */
 	pinctrl_enetc1_1588_tmr: enetc11588tmrgrp {
 		fsl,pins = < IMX95_PAD_CCM_CLKO4__NETCMIX_TOP_NETC_TMR_1588_PP2	0x51e>; /* SMARC P5 - GBE1_SDP */
+	};
+
+	pinctrl_ctrl_io_exp_int_b: ioexpintgrp {
+		fsl,pins = <IMX95_PAD_SAI1_RXD0__AONMIX_TOP_GPIO1_IO_BIT14 0x31e>; /* CTRL_IO_EXP_INT_B */
 	};
 
 	/* SMARC I2C_CAM0 */

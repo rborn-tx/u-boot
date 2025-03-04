@@ -33,8 +33,17 @@
 	bootph-pre-ram;
 };
 
+&som_gpio_expander_0 {
+	bootph-pre-ram;
+};
+
 &usdhc1 {
 	bootph-pre-ram;
+};
+
+&usb2 {
+	bootph-pre-ram;
+	/delete-property/power-domains;
 };
 
 &usb3 {
@@ -43,4 +52,12 @@
 
 &usb3_dwc3 {
 	compatible = "fsl,imx95a-dwc3", "fsl,imx8mq-dwc3", "snps,dwc3";
+};
+
+&usbmisc {
+	bootph-pre-ram;
+};
+
+&usbphynop {
+	bootph-pre-ram;
 };
