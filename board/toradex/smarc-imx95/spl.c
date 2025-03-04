@@ -62,12 +62,16 @@ static void ec_boot_notify(void)
 		return;
 	}
 
-	/* TODO: Enable when USB support is complete (ELB-6256) */
-#if 0
+	/* USB configuration before this command (when SoC starts in recovery):
+	 * - SoC USB1 -> Smarc USB0
+	 * - SoC USB2 -> NC
+	 * After the command:
+	 * - SoC USB1 -> SoM hub -> Smarc USB1, USB2, USB3 and USB4
+	 * - SoC USB2 -> Smarc USB0
+	 */
 	ret = dm_i2c_write(i2c_dev, 0xD0, &val, 1);
 	if (ret)
 		puts("Cannot send command to Toradex EC\n");
-#endif
 }
 
 void spl_board_init(void)
