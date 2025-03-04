@@ -10,9 +10,11 @@
 #include <asm/sections.h>
 #include <asm/global_data.h>
 #include <clk.h>
+#include <dm/uclass.h>
 #include <dt-bindings/clock/fsl,imx95-clock.h>
 #include <dt-bindings/power/fsl,imx95-power.h>
 #include <hang.h>
+#include <i2c.h>
 #include <init.h>
 #include <log.h>
 #include <scmi_agent.h>
@@ -20,6 +22,8 @@
 #include <spl.h>
 
 DECLARE_GLOBAL_DATA_PTR;
+
+#define EC_I2C_BUS 3
 
 int spl_board_boot_device(enum boot_device boot_dev_spl)
 {
@@ -37,6 +41,33 @@ int spl_board_boot_device(enum boot_device boot_dev_spl)
 	default:
 		return BOOT_DEVICE_NONE;
 	}
+}
+
+static void ec_boot_notify(void)
+{
+	struct udevice *bus;
+	struct udevice *i2c_dev;
+	int ret;
+	u8 val = 0x03;
+
+	ret = uclass_get_device_by_seq(UCLASS_I2C, EC_I2C_BUS, &bus);
+	if (ret) {
+		puts("Failed to get Toradex EC I2C BUS\n");
+		return;
+	}
+
+	ret = dm_i2c_probe(bus, 0x28, 0, &i2c_dev);
+	if (ret) {
+		puts("Toradex EC not found\n");
+		return;
+	}
+
+	/* TODO: Enable when USB support is complete (ELB-6256) */
+#if 0
+	ret = dm_i2c_write(i2c_dev, 0xD0, &val, 1);
+	if (ret)
+		puts("Cannot send command to Toradex EC\n");
+#endif
 }
 
 void spl_board_init(void)
@@ -87,6 +118,8 @@ void board_init_f(ulong dummy)
 		printf("scmi_pwd_state_get Failed %d for DDRMIX\n", ret);
 	else if (state == BIT(30))
 		panic("DDRMIX is powered OFF, Please initialize DDR with OEI\n");
+
+	ec_boot_notify();
 
 	board_init_r(NULL, 0);
 }
