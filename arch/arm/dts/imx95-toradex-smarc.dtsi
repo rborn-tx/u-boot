@@ -43,6 +43,14 @@
 		enable-active-high;
 		regulator-name = "USB0_EN_OC#";
 	};
+
+	reg_usb1_vbus: regulator-usb1-vbus {
+		compatible = "regulator-fixed";
+		/* CTRL_V_BUS_USB_HUB or SMARC P71 - USB2_EN_OC# */
+		gpios = <&som_gpio_expander_0 6 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		regulator-name = "CTRL_V_BUS_USB_HUB";
+	};
 };
 
 /* SMARC GBE0 */
@@ -147,16 +155,17 @@
 	};
 };
 
+&usb3 {
+	fsl,disable-port-power-control;
+};
+
 /* SMARC USB1..4  */
 &usb3_dwc3 {
-	adp-disable;
-	dr_mode = "otg";
-	hnp-disable;
-	role-switch-default-mode = "none";
-	srp-disable;
-	usb-role-switch;
-	snps,dis-u1-entry-quirk;
-	snps,dis-u2-entry-quirk;
+	dr_mode = "host";
+};
+
+&usb3_phy {
+	vbus-supply = <&reg_usb1_vbus>;
 };
 
 &scmi_iomuxc {
