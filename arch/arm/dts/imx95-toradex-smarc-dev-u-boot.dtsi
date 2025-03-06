@@ -3,6 +3,15 @@
 
 #include "imx95-u-boot.dtsi"
 
+/ {
+	usbg2 {
+		compatible = "fsl,imx27-usb-gadget";
+		dr_mode = "peripheral";
+		chipidea,usb = <&usb2>;
+		bootph-pre-ram;
+	};
+};
+
 &lpi2c4 {
 	bootph-pre-ram;
 };
