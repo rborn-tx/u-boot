@@ -12,6 +12,7 @@
 #include <lmb.h>
 #include <log.h>
 #include <malloc.h>
+#include <tdx-harden.h>
 
 #include <asm/global_data.h>
 #include <asm/sections.h>
@@ -591,3 +592,66 @@ __weak void arch_lmb_reserve(struct lmb *lmb)
 {
 	/* please define platform specific arch_lmb_reserve() */
 }
+
+#if CONFIG_IS_ENABLED(TDX_LOAD_PROTECTION)
+int tdx_valid_loadaddr(struct lmb *lmb, phys_addr_t base, phys_size_t size)
+{
+	long rgn;
+	phys_addr_t end, off, lim;
+
+	if (!tdx_hardening_enabled())
+		return 1;
+	if (!gd->fdt_blob)
+		return 1;	/* no hardening */
+
+	rgn = lmb_overlaps_region(&lmb->memory, base, size);
+	if (rgn != 0) {
+		debug("Load address range does not overlap first "
+		      "memory region\n");
+		goto err;
+	}
+
+	end = base + size - 1;
+	if (!lmb_addrs_overlap(lmb->memory.region[rgn].base,
+			       lmb->memory.region[rgn].size, base, 1)) {
+		debug("Start address does not fall into memory region\n");
+		goto err;
+	}
+	if (!lmb_addrs_overlap(lmb->memory.region[rgn].base,
+			       lmb->memory.region[rgn].size, end, 1)) {
+		debug("End address does not fall into memory region\n");
+		goto err;
+	}
+
+	/*
+	 * Ensure the end address is within the memory region and below offset
+	 * 1G-64MB / 512M-64MB (on low-memory devices). On a 1GB/512MB device,
+	 * this should give U-Boot 64MB to use at the end of the memory and it
+	 * should be compatible with all Toradex boot scripts.
+	 */
+	off = end - lmb->memory.region[rgn].base;
+	lim = (lmb->memory.region[rgn].size >= SZ_1G) ?
+		(SZ_1G - SZ_64M) : (SZ_512M - SZ_64M);
+
+	debug("Checking offset 0x%llx against limit 0x%llx; "
+	      "memory start: 0x%llx, size: 0x%llx\n",
+	      (u64) off, (u64) lim,
+	      (u64) lmb->memory.region[rgn].base,
+	      (u64) lmb->memory.region[rgn].size);
+
+	if (off >= lim) {
+		debug("End offset (0x%llx) >= limit (0x%llx)\n",
+		      (u64) off, (u64) lim);
+		goto err;
+	}
+
+	debug("Load address 0x%llx, size=0x%llx passed validation\n",
+	      (u64) base, (u64) size);
+	return 1;
+
+err:
+	eprintf("## ERROR: Loading data into addr 0x%llx forbidden by the "
+		"hardening feature\n", (u64) base);
+	return 0;
+}
+#endif

@@ -747,6 +747,7 @@ config TDX_SECBOOT_HARDENING
 	bool "Toradex Secure Boot hardening"
 	select TDX_CMD_WHITELIST
 	select TDX_BOOTM_PROTECTION
+	select TDX_LOAD_PROTECTION
 	select TDX_CLI_PROTECTION
 	select TDX_BOOTARGS_PROTECTION
 	help
@@ -779,6 +780,12 @@ config TDX_BOOTM_PROTECTION
 	help
 	  Enable the protection in bootm to prevent execution of unsigned
 	  images.
+
+config TDX_LOAD_PROTECTION
+	bool
+	help
+	  Enable the protection in the load command to prevent overwriting
+	  U-Boot itself or writing to memory mapped devices.
 
 config TDX_CLI_PROTECTION
 	bool
