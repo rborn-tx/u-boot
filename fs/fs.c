@@ -553,6 +553,12 @@ static int fs_read_lmb_check(const char *filename, ulong addr, loff_t offset,
 	lmb_init_and_reserve(&lmb, gd->bd, (void *)gd->fdt_blob);
 	lmb_dump_all(&lmb);
 
+#if CONFIG_IS_ENABLED(TDX_LOAD_PROTECTION)
+	int tdx_valid_loadaddr(struct lmb *lmb, phys_addr_t base, phys_size_t size);
+	if (!tdx_valid_loadaddr(&lmb, addr, read_len))
+		return -EFAULT;
+#endif
+
 	if (lmb_alloc_addr(&lmb, addr, read_len) == addr)
 		return 0;
 
