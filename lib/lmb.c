@@ -6,6 +6,9 @@
  * Copyright (C) 2001 Peter Bergner.
  */
 
+#define DEBUG
+#define LOG_DEBUG
+
 #include <efi_loader.h>
 #include <image.h>
 #include <mapmem.h>
