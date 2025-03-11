@@ -15,6 +15,7 @@
 #include <lmb.h>
 #include <log.h>
 #include <malloc.h>
+#include <linux/sizes.h>
 #include <tdx-harden.h>
 
 #include <asm/global_data.h>
