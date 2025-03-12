@@ -510,24 +510,43 @@ phys_addr_t __lmb_alloc_base(struct lmb *lmb, phys_size_t size, ulong align, phy
  */
 phys_addr_t lmb_alloc_addr(struct lmb *lmb, phys_addr_t base, phys_size_t size)
 {
+	int i;
 	long rgn;
 
 	/* Check if the requested address is in one of the memory regions */
 	rgn = lmb_overlaps_region(&lmb->memory, base, size);
-	if (rgn >= 0) {
-		/*
-		 * Check if the requested end address is in the same memory
-		 * region we found.
-		 */
-		if (lmb_addrs_overlap(lmb->memory.region[rgn].base,
-				      lmb->memory.region[rgn].size,
-				      base + size - 1, 1)) {
-			/* ok, reserve the memory */
-			if (lmb_reserve(lmb, base, size) >= 0)
-				return base;
+	if (rgn < 0)
+		goto err;
+
+	/* Ensure end address is in the same memory region we found */
+	if (!lmb_addrs_overlap(lmb->memory.region[rgn].base,
+			       lmb->memory.region[rgn].size,
+			       base + size - 1, 1))
+		goto err;
+
+	/* Check for overlap with reserved regions */
+	for (i = 0; i < lmb->reserved.cnt; i++) {
+		if (lmb_addrs_overlap(lmb->reserved.region[i].base,
+				      lmb->reserved.region[i].size,
+				      base, size)) {
+			debug("Requested range overlaps with region "
+			      "reserved[%d]: [0x%llx-0x%llx]\n", i,
+			      (u64) lmb->reserved.region[i].base,
+			      ((u64) lmb->reserved.region[i].base +
+			       lmb->reserved.region[i].size - 1));
+			goto err;
 		}
 	}
-	return 0;
+
+	/* All good, reserve the memory. */
+	if (lmb_reserve(lmb, base, size) >= 0)
+		return base;
+
+err:
+	debug("Couldn't allocate range [0x%llx-0x%llx]\n",
+	      (u64) base, (u64) base + size - 1);
+
+	return (phys_addr_t) -1;
 }
 
 /* Return number of bytes from a given address that are free */
