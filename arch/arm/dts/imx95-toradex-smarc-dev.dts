@@ -7,7 +7,6 @@
 
 /dts-v1/;
 
-#include <dt-bindings/usb/pd.h>
 #include "imx95-toradex-smarc.dtsi"
 
 / {
@@ -15,6 +14,42 @@
 	compatible = "toradex,smarc-imx95-dev",
 		     "toradex,smarc-imx95",
 		     "fsl,imx95";
+
+	aliases {
+		ethernet2 = &enetc_port2;
+	};
+
+	/* SMARC DP0 */
+	dp0_connector: dp0-connector {
+		compatible = "dp-connector";
+		label = "DP0";
+		type = "full-size";
+
+		port {
+			dp0_connector_in: endpoint {
+				remote-endpoint = <&sn65dsi86_out>;
+			};
+		};
+	};
+
+	reg_carrier_1p8v: regulator-carrier-1p8v {
+		compatible = "regulator-fixed";
+		regulator-max-microvolt = <1800000>;
+		regulator-min-microvolt = <1800000>;
+		regulator-name = "On-carrier 1V8";
+	};
+};
+
+&display_pixel_link {
+	status = "okay";
+};
+
+&displaymix_irqsteer {
+	status = "okay";
+};
+
+&dpu {
+	status = "okay";
 };
 
 /* SMARC GBE0 */
@@ -27,8 +62,124 @@
 	status = "okay";
 };
 
-/* SMARC MDIO, shared between all ethernet ports */
-&netc_emdio {
+/* SMARC SERDES_0 - ETH2 */
+&enetc_port2 {
+	phy-handle = <&ethphy3>;
+	phy-mode = "sgmii";
+	status = "okay";
+};
+
+&gpio2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_gpio12>, <&pinctrl_gpio13>;
+};
+
+&gpio4 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_gpio10>, <&pinctrl_gpio11>;
+};
+
+&gpio5 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_gpio2>,
+		    <&pinctrl_gpio3>,
+		    <&pinctrl_gpio4>,
+		    <&pinctrl_gpio6>,
+		    <&pinctrl_gpio7>,
+		    <&pinctrl_gpio8>,
+		    <&pinctrl_gpio9>;
+};
+
+/* SMARC I2C_GP */
+&lpi2c2 {
+	status = "okay";
+
+	wm8904_1a: audio-codec@1a {
+		compatible = "wlf,wm8904";
+		reg = <0x1a>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_sai3>, <&pinctrl_sai3_mclk>;
+		#sound-dai-cells = <0>;
+		clocks = <&scmi_clk IMX95_CLK_SAI3>;
+		clock-names = "mclk";
+		AVDD-supply = <&reg_carrier_1p8v>;
+		CPVDD-supply = <&reg_carrier_1p8v>;
+		DBVDD-supply = <&reg_carrier_1p8v>;
+		DCVDD-supply = <&reg_carrier_1p8v>;
+		MICVDD-supply = <&reg_carrier_1p8v>;
+	};
+
+	temperature-sensor@4f {
+		compatible = "ti,tmp1075";
+		reg = <0x4f>;
+	};
+
+	eeprom@57 {
+		compatible = "st,24c02";
+		reg = <0x57>;
+		pagesize = <16>;
+	};
+
+};
+
+/* SMARC I2C_PM */
+&lpi2c3 {
+	clock-frequency = <100000>;
+	status = "okay";
+
+	fan: fan@18 {
+		compatible = "ti,amc6821";
+		reg = <0x18>;
+		#cooling-cells = <2>;
+	};
+
+	/* Current measurement into module VCC */
+	hwmon@40 {
+		compatible = "ti,ina226";
+		reg = <0x40>;
+		shunt-resistor = <5000>;
+	};
+};
+
+/* SMARC I2C_CAM0 */
+&lpi2c4 {
+	status = "okay";
+};
+
+/* SMARC I2C_LCD */
+&lpi2c5 {
+	status = "okay";
+
+	i2c-mux@70 {
+		compatible = "nxp,pca9543";
+		reg = <0x70>;
+		i2c-mux-idle-disconnect;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		/* I2C on DSI Connector Pins 4/6 */
+		i2c_dsi_0: i2c@0 {
+			reg = <0>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+		};
+
+		/* I2C on DSI Connector Pins 52/54 */
+		i2c_dsi_1: i2c@1 {
+			reg = <1>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+		};
+	};
+};
+
+/* SMARC I2C_CAM1 */
+&lpi2c7 {
+	status = "okay";
+};
+
+/* SMARC SPI0 */
+&lpspi6 {
 	status = "okay";
 };
 
@@ -37,7 +188,87 @@
 	status = "okay";
 };
 
+/* SMARC SER0, RS485 */
+&lpuart2 {
+	linux,rs485-enabled-at-boot-time;
+	rs485-rts-active-low;
+	rs485-rx-during-tx;
+	status = "reserved"; //TODO: currently used by the system manager
+};
+
+/* SMARC SER3, RS232 */
+&lpuart3 {
+	status = "okay";
+};
+
+/* SMARC SER2 */
+&lpuart6 {
+	status = "okay";
+};
+
+&mipi_dsi {
+	status = "okay";
+};
+
+/* SMARC MDIO, shared between all ethernet ports */
+&netc_emdio {
+	status = "okay";
+
+	ethphy3: ethernet-phy@4 {
+		reg = <4>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_gpio7>;
+		interrupt-parent = <&gpio5>;
+		interrupts = <9 IRQ_TYPE_LEVEL_LOW>;
+	};
+};
+
+&pixel_interleaver {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+
+	channel@0 {
+		reg = <0>;
+		status = "okay";
+	};
+};
+
+/* SMARC DP0 */
+&som_dsi2dp_bridge {
+	status = "okay";
+};
+
+&sn65dsi86_out {
+	remote-endpoint = <&dp0_connector_in>;
+};
+
+/* SMARC LCD0_BKLT_PWM */
+&tpm3 {
+	status = "okay";
+};
+
+/* SMARC LCD1_BKLT_PWM */
+&tpm4 {
+	status = "okay";
+};
+
+/* SMARC GPIO5 as PWM */
+&tpm5 {
+	status = "okay";
+};
+
+/* SMARC USB0 */
+&usb2 {
+	status = "okay";
+};
+
+/* SMARC USB1..4 */
 &usb3 {
+	status = "okay";
+};
+
+&usb3_dwc3 {
 	status = "okay";
 };
 
@@ -45,6 +276,7 @@
 	status = "okay";
 };
 
-&usb3_dwc3 {
+/* SMARC SDIO */
+&usdhc2 {
 	status = "okay";
 };
