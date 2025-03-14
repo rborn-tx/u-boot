@@ -47,11 +47,39 @@
 	bootph-pre-ram;
 };
 
+&pinctrl_usdhc2 {
+	bootph-pre-ram;
+};
+
+&pinctrl_usdhc2_200mhz {
+	bootph-pre-ram;
+};
+
+&pinctrl_usdhc2_cd {
+	bootph-pre-ram;
+};
+
+&pinctrl_usdhc2_pwr_en {
+	bootph-pre-ram;
+};
+
+&pinctrl_usdhc2_vsel {
+	bootph-pre-ram;
+};
+
+&reg_usdhc2_vmmc {
+	bootph-pre-ram;
+};
+
+&reg_usdhc2_vqmmc {
+	bootph-pre-ram;
+};
+
 &som_gpio_expander_0 {
 	bootph-pre-ram;
 };
 
-&usdhc1 {
+&som_gpio_expander_1 {
 	bootph-pre-ram;
 };
 
@@ -73,5 +101,13 @@
 };
 
 &usbphynop {
+	bootph-pre-ram;
+};
+
+&usdhc1 {
+	bootph-pre-ram;
+};
+
+&usdhc2 {
 	bootph-pre-ram;
 };
