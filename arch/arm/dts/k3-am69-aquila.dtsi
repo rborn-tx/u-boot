@@ -369,9 +369,9 @@
 	};
 
 	/* Aquila PWM_2 */
-	pinctrl_main_ehrpwm3_a: main-ehrpwm3a-default-pins {
+	pinctrl_main_ehrpwm1_a: main-ehrpwm1a-default-pins {
 		pinctrl-single,pins = <
-			J784S4_IOPAD(0x08c, PIN_OUTPUT, 9) /* (AE35) MCASP0_AXR7.EHRPWM3_A */ /* AQUILA C26 */
+			J784S4_IOPAD(0x060, PIN_OUTPUT, 9) /* (AE36) MCASP2_AXR1.EHRPWM1_A */ /* AQUILA C26 */
 		>;
 	};
 
@@ -452,6 +452,13 @@
 		>;
 	};
 
+	/* Aquila GPIO_21_DP */
+	pinctrl_gpio_21_dp: main-gpio0-21-default-pins {
+		pinctrl-single,pins = <
+			J784S4_IOPAD(0x054, PIN_INPUT, 7) /* (AD37) MCASP2_ACLKX.GPIO0_21 */ /* AQUILA B57 */
+		>;
+	};
+
 	/* Aquila USB_1_INT# */
 	pinctrl_usb1_int: main-gpio0-28-default-pins {
 		pinctrl-single,pins = <
@@ -494,27 +501,6 @@
 		>;
 	};
 
-	/* Aquila GPIO_11_CSI_1 */
-	pinctrl_gpio_11_csi_1: main-gpio0-36-default-pins {
-		pinctrl-single,pins = <
-			J784S4_IOPAD(0x090, PIN_INPUT, 7) /* (AC35) MCASP0_AXR8.GPIO0_36 */ /* AQUILA A11 */
-		>;
-	};
-
-	/* Aquila GPIO_21_DP */
-	pinctrl_gpio_21_dp: main-gpio0-37-default-pins {
-		pinctrl-single,pins = <
-			J784S4_IOPAD(0x094, PIN_INPUT, 7) /* (AG35) MCASP0_AXR9.GPIO0_37 */ /* AQUILA B57 */
-		>;
-	};
-
-	/* Aquila GPIO_12_CSI_1 */
-	pinctrl_gpio_12_csi_1: main-gpio0-38-default-pins {
-		pinctrl-single,pins = <
-			J784S4_IOPAD(0x098, PIN_INPUT, 7) /* (AH36) MCASP0_AXR10.GPIO0_38 */ /* AQUILA B19 */
-		>;
-	};
-
 	/* Aquila PCIE_2_RESET# */
 	pinctrl_pcie1_reset: main-gpio0-41-default-pins {
 		pinctrl-single,pins = <
@@ -526,6 +512,20 @@
 	pinctrl_eth2_int: main-gpio0-44-default-pins {
 		pinctrl-single,pins = <
 			J784S4_IOPAD(0x0b0, PIN_INPUT_PULLUP, 7) /* (AL33) MCASP1_AXR3.GPIO0_44 */ /* AQUILA B81 */
+		>;
+	};
+
+	/* Aquila GPIO_11_CSI_1 */
+	pinctrl_gpio_11_csi_1: main-gpio0-47-default-pins {
+		pinctrl-single,pins = <
+			J784S4_IOPAD(0x0bc, PIN_INPUT, 7) /* (AD33) MCASP1_AFSX.GPIO0_47 */ /* AQUILA A11 */
+		>;
+	};
+
+	/* Aquila GPIO_12_CSI_1 */
+	pinctrl_gpio_12_csi_1: main-gpio0-48-default-pins {
+		pinctrl-single,pins = <
+			J784S4_IOPAD(0x0c0, PIN_INPUT, 7) /* (AD38) MCASP1_AXR0.GPIO0_48 */ /* AQUILA B19 */
 		>;
 	};
 
@@ -662,12 +662,12 @@
 	};
 
 	/* Aquila UART_1 */
-	pinctrl_main_uart1: main-uart1-default-pins {
+	pinctrl_main_uart4: main-uart4-default-pins {
 		pinctrl-single,pins = <
-			J784S4_IOPAD(0x05c, PIN_INPUT, 11)  /* (AC36) MCASP2_AXR0.UART1_CTSn */ /* AQUILA B36 */
-			J784S4_IOPAD(0x060, PIN_OUTPUT, 11) /* (AE36) MCASP2_AXR1.UART1_RTSn */ /* AQUILA B38 */
-			J784S4_IOPAD(0x054, PIN_INPUT, 11)  /* (AD37) MCASP2_ACLKX.UART1_RXD */ /* AQUILA B35 */
-			J784S4_IOPAD(0x058, PIN_OUTPUT, 11) /* (AE37) MCASP2_AFSX.UART1_TXD  */ /* AQUILA B37 */
+			J784S4_IOPAD(0x094, PIN_INPUT, 11)  /* (AG35) MCASP0_AXR9.UART4_CTSn  */ /* AQUILA B36 */
+			J784S4_IOPAD(0x098, PIN_OUTPUT, 11) /* (AH36) MCASP0_AXR10.UART4_RTSn */ /* AQUILA B38 */
+			J784S4_IOPAD(0x08c, PIN_INPUT, 11)  /* (AE35) MCASP0_AXR7.UART4_RXD   */ /* AQUILA B35 */
+			J784S4_IOPAD(0x090, PIN_OUTPUT, 11) /* (AC35) MCASP0_AXR8.UART4_TXD   */ /* AQUILA B37 */
 		>;
 	};
 
@@ -1148,17 +1148,17 @@
 	status = "disabled";
 };
 
+/* Aquila PWM_2 */
+&main_ehrpwm1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_main_ehrpwm1_a>;
+	status = "disabled";
+};
+
 /* Aquila PWM_4_DP */
 &main_ehrpwm2 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_main_ehrpwm2_a>;
-	status = "disabled";
-};
-
-/* Aquila PWM_2 */
-&main_ehrpwm3 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_main_ehrpwm3_a>;
 	status = "disabled";
 };
 
@@ -1448,9 +1448,9 @@
 };
 
 /* Aquila UART_1 */
-&main_uart1 {
+&main_uart4 {
 	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_main_uart1>;
+	pinctrl-0 = <&pinctrl_main_uart4>;
 	status = "disabled";
 };
 

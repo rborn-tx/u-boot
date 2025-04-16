@@ -149,7 +149,7 @@
 };
 
 /* Aquila PWM_2 */
-&main_ehrpwm3 {
+&main_ehrpwm1 {
 	status = "okay";
 };
 
@@ -220,7 +220,7 @@
 };
 
 /* Aquila UART_1 */
-&main_uart1 {
+&main_uart4 {
 	status = "okay";
 };
 
