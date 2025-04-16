@@ -25,7 +25,7 @@
 		can3 = &mcu_mcan1;
 		eeprom0 = &som_eeprom;
 		ethernet0 = &mcu_cpsw_port1;
-		ethernet1 = &main_cpsw0_port2;
+		ethernet1 = &main_cpsw0_port8;
 		i2c0 = &wkup_i2c0;
 		i2c1 = &mcu_i2c0;
 		i2c2 = &mcu_i2c1;
@@ -33,7 +33,6 @@
 		i2c4 = &main_i2c1;
 		i2c5 = &main_i2c2;
 		i2c6 = &main_i2c5;
-		mdio-gpio0 = &eth2_mdio_gpio;
 		mmc0 = &main_sdhci0;
 		mmc1 = &main_sdhci1;
 		rtc0 = &rtc_i2c;
@@ -87,18 +86,6 @@
 		/* PWR_DOWN_REQ */
 		gpios = <&som_gpio_expander 2 GPIO_ACTIVE_HIGH>;
 		timeout-ms = <3000>;
-	};
-
-	/* Aquila ETH_2 MDIO (GPIO bit-banging) */
-	eth2_mdio_gpio: mdio {
-		compatible = "virtual,mdio-gpio";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_eth2_mdc>, <&pinctrl_eth2_mdio>;
-		#address-cells = <1>;
-		#size-cells = <0>;
-		gpios = <&main_gpio0 48 GPIO_ACTIVE_HIGH>, /* MDC */
-			<&main_gpio0 47 GPIO_ACTIVE_HIGH>; /* MDIO */
-		status = "disabled";
 	};
 
 	memory@80000000 {
@@ -542,20 +529,6 @@
 		>;
 	};
 
-	/* Aquila ETH_2_MDIO as GPIO */
-	pinctrl_eth2_mdio: main-gpio0-47-default-pins {
-		pinctrl-single,pins = <
-			J784S4_IOPAD(0x0bc, PIN_INPUT, 7)  /* (AD33) MCASP1_AFSX.GPIO0_47 */ /* AQUILA B89 */
-		>;
-	};
-
-	/* Aquila ETH_2_MDC as GPIO */
-	pinctrl_eth2_mdc: main-gpio0-48-default-pins {
-		pinctrl-single,pins = <
-			J784S4_IOPAD(0x0c0, PIN_INPUT, 7) /* (AD38) MCASP1_AXR0.GPIO0_48 */ /* AQUILA B90 */
-		>;
-	};
-
 	/* Aquila SD_1_PWR_EN */
 	pinctrl_sd1_pwr_en: main-gpio0-52-default-pins {
 		pinctrl-single,pins = <
@@ -635,11 +608,11 @@
 		>;
 	};
 
-	/* Aquila ETH_2 MDIO */
-	pinctrl_main_mdio0: main-mdio0-default-pins {
+	/* Aquila ETH_2_MDIO */
+	pinctrl_main_mdio1: main-mdio1-default-pins {
 		pinctrl-single,pins = <
-			J784S4_IOPAD(0x0c0, PIN_OUTPUT, 6) /* (AD38) MCASP1_AXR0.MDIO0_MDC  */ /* AQUILA B90 */
-			J784S4_IOPAD(0x0bc, PIN_INPUT, 6)  /* (AD33) MCASP1_AFSX.MDIO0_MDIO */ /* AQUILA B89 */
+			J784S4_IOPAD(0x058, PIN_OUTPUT, 4) /* (AE37) MCASP2_AFSX.MDIO1_MDC  */ /* AQUILA B90 */
+			J784S4_IOPAD(0x05c, PIN_INPUT, 4)  /* (AC36) MCASP2_AXR0.MDIO1_MDIO */ /* AQUILA B89 */
 		>;
 	};
 
@@ -1155,17 +1128,17 @@
 };
 
 /* Aquila ETH_2 SGMII PHY */
-&main_cpsw0_port2 {
+&main_cpsw0_port8 {
 	phy-mode = "sgmii";
-	phys = <&cpsw0_phy_gmii_sel 2>, <&serdes1_sgmii_link>;
+	phys = <&cpsw0_phy_gmii_sel 8>, <&serdes2_sgmii_link>;
 	phy-names = "mac", "serdes";
 	status = "disabled";
 };
 
 /* Aquila ETH_2 MDIO */
-&main_cpsw1_mdio {
+&main_cpsw0_mdio {
 	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_main_mdio0>;
+	pinctrl-0 = <&pinctrl_main_mdio1>;
 };
 
 /* Aquila PWM_1 */
@@ -1708,11 +1681,16 @@
 		cdns,phy-type = <PHY_TYPE_PCIE>;
 	};
 
+};
+
+&serdes2 {
+	status = "disabled";
+
 	/* Aquila ETH_2 xGMII */
-	serdes1_sgmii_link: phy@3 {
+	serdes2_sgmii_link: phy@3 {
 		reg = <3>;
 		#phy-cells = <0>;
-		resets = <&serdes_wiz1 4>;
+		resets = <&serdes_wiz2 4>;
 		cdns,num-lanes = <1>;
 		cdns,phy-type = <PHY_TYPE_SGMII>;
 	};
@@ -1746,11 +1724,11 @@
 		      <J784S4_SERDES1_LANE0_PCIE0_LANE0>,     /* Aquila PCIE_1 L0          */
 		      <J784S4_SERDES1_LANE1_PCIE0_LANE1>,     /* Aquila PCIE_1 L1          */
 		      <J784S4_SERDES1_LANE2_PCIE2_LANE0>,     /* On-module PCIe USB Bridge */
-		      <J784S4_SERDES1_LANE3_QSGMII_LANE2>,    /* Aquila ETH_2 xGMII        */
+		      <J784S4_SERDES1_LANE3_QSGMII_LANE2>,    /* Aquila SGMII MSP_9        */
 		      <J784S4_SERDES2_LANE0_QSGMII_LANE5>,    /* Aquila SGMII MSP_6        */
 		      <J784S4_SERDES2_LANE1_QSGMII_LANE6>,    /* Aquila SGMII MSP_7        */
 		      <J784S4_SERDES2_LANE2_QSGMII_LANE7>,    /* Aquila SGMII MSP_8        */
-		      <J784S4_SERDES2_LANE3_QSGMII_LANE8>,    /* Aquila SGMII MSP_9        */
+		      <J784S4_SERDES2_LANE3_QSGMII_LANE8>,    /* Aquila ETH_2 xGMII        */
 		      <J784S4_SERDES4_LANE0_EDP_LANE0>,       /* Aquila DP L0              */
 		      <J784S4_SERDES4_LANE1_EDP_LANE1>,       /* Aquila DP L1              */
 		      <J784S4_SERDES4_LANE2_EDP_LANE2>,       /* Aquila DP L2              */
@@ -1763,6 +1741,10 @@
 
 &serdes_wiz1 {
 	status = "okay";
+};
+
+&serdes_wiz2 {
+	status = "disabled";
 };
 
 &serdes_wiz4 {
