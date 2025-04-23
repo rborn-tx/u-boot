@@ -175,6 +175,10 @@ config TARGET_TORADEX_SMARC_IMX95
 	bool "Support Toradex SMARC iMX95"
 	select IMX95
 
+config TARGET_VERDIN_IMX95
+	bool "Support Toradex Verdin iMX95 module"
+	select IMX95
+
 endchoice
 
 source "board/freescale/imx91_evk/Kconfig"
