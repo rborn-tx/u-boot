@@ -49,6 +49,15 @@ static void read_hw_cfg(void)
 	printf("0x%02x\n", hw_cfg);
 }
 
+void do_board_detect(void)
+{
+	/* MCU_ADC1 pins used as General Purpose Inputs */
+	writel(readl(CTRL_MMR_CFG0_MCU_ADC1_CTRL) | BIT(16),
+	       CTRL_MMR_CFG0_MCU_ADC1_CTRL);
+
+	read_hw_cfg();
+}
+
 int board_init(void)
 {
 	return 0;
@@ -130,14 +139,8 @@ void spl_board_init(void)
 			printf("ESM PMIC init failed: %d\n", ret);
 	}
 
-	/* MCU_ADC1 pins used as General Purpose Inputs */
-	writel(readl(CTRL_MMR_CFG0_MCU_ADC1_CTRL) | BIT(16),
-	       CTRL_MMR_CFG0_MCU_ADC1_CTRL);
-
 	if (IS_ENABLED(CONFIG_TARGET_AQUILA_AM69_R5))
 		writel(readl(CTRL_MMR_CFG0_MCU_CLKOUT0_CTRL) |
 		       MCU_CLKOUT0_CTRL_CLK_EN,
 		       CTRL_MMR_CFG0_MCU_CLKOUT0_CTRL);
-
-	read_hw_cfg();
 }
