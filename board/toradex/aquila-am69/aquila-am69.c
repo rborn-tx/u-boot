@@ -46,7 +46,7 @@ static void read_hw_cfg(void)
 
 		dm_gpio_free(NULL, &gpio_hw_cfg);
 	}
-	printf("0x%2x\n", hw_cfg);
+	printf("0x%02x\n", hw_cfg);
 }
 
 int board_init(void)
