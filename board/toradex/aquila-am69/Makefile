@@ -4,3 +4,4 @@
 #
 
 obj-y	+= aquila-am69.o
+obj-y	+= ddrs_patch.o
