@@ -27,6 +27,11 @@
 	bootph-pre-ram;
 };
 
+/* Conflict with JTAG interface */
+&lpuart5 {
+	status = "disabled";
+};
+
 &pinctrl_lpi2c4 {
 	bootph-pre-ram;
 };
