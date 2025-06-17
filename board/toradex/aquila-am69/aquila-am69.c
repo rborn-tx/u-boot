@@ -5,6 +5,7 @@
  * Copyright 2024 Toradex - https://www.toradex.com/
  */
 
+#include <asm/arch/k3-common-fdt.h>
 #include <asm/arch/hardware.h>
 #include <asm/gpio.h>
 #include <asm/io.h>
@@ -13,7 +14,6 @@
 #include <fdt_support.h>
 #include <spl.h>
 
-#include "../../../arch/arm/mach-k3/common_fdt.h"
 #include "../common/tdx-common.h"
 #include "aquila_ddrs_16GB.h"
 #include "aquila_ddrs_8GB.h"
