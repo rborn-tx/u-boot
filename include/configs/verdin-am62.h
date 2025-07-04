@@ -23,18 +23,6 @@
 	"ramdisk_addr_r=" __stringify(RAMDISK_ADDR_R) "\0" \
 	"scriptaddr=" __stringify(SCRIPTADDR) "\0"
 
-#if CONFIG_TARGET_VERDIN_AM62_A53
-/* Enable Distro Boot */
-#define BOOT_TARGET_DEVICES(func) \
-	func(MMC, mmc, 1) \
-	func(MMC, mmc, 0) \
-	func(DHCP, dhcp, na)
-#include <config_distro_bootcmd.h>
-#else /* CONFIG_TARGET_VERDIN_AM62_A53 */
-#define BOOTENV \
-	""
-#endif /* CONFIG_TARGET_VERDIN_AM62_A53 */
-
 #define EXTRA_ENV_DFUARGS \
 	"dfu_alt_info_ram=" \
 	"tispl.bin ram 0x80080000 0x200000;" \
@@ -45,7 +33,6 @@
 
 /* Incorporate settings into the U-Boot environment */
 #define CFG_EXTRA_ENV_SETTINGS \
-	BOOTENV \
 	EXTRA_ENV_DFUARGS \
 	MEM_LAYOUT_ENV_SETTINGS \
 	"boot_script_dhcp=boot.scr\0" \
