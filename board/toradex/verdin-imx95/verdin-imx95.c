@@ -7,6 +7,7 @@
 #include <asm/io.h>
 #include <dt-bindings/power/fsl,imx95-power.h>
 #include <dwc3-uboot.h>
+#include <env.h>
 #include <fdt_support.h>
 #include <init.h>
 #include <linux/bitfield.h>
@@ -72,6 +73,39 @@ void board_quiesce_devices(void)
 	ret = imx9_scmi_power_domain_enable(IMX95_PD_NETC, false);
 	if (ret)
 		printf("%s: Failed to disable PD NETC for Ethernet: %d\n", __func__, ret);
+}
+
+static void select_dt_from_module_version(void)
+{
+	char variant[32];
+	char *env_variant = env_get("variant");
+	bool is_wifi = false;
+
+	if (IS_ENABLED(CONFIG_TDX_CFG_BLOCK)) {
+		/*
+		 * If we have a valid config block and it says we are a
+		 * module with Wi-Fi/Bluetooth make sure we use the -wifi
+		 * device tree.
+		 */
+		is_wifi = (tdx_hw_tag.prodid == VERDIN_IMX95H_8G_WIFI_BT_IT);
+	}
+
+	if (is_wifi)
+		strlcpy(&variant[0], "wifi", sizeof(variant));
+	else
+		strlcpy(&variant[0], "nonwifi", sizeof(variant));
+
+	if (strcmp(variant, env_variant)) {
+		printf("Setting variant to %s\n", variant);
+		env_set("variant", variant);
+	}
+}
+
+int board_late_init(void)
+{
+	select_dt_from_module_version();
+
+	return 0;
 }
 
 int board_phys_sdram_size(phys_size_t *size)
