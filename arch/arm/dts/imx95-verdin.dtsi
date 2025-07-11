@@ -106,8 +106,8 @@
 	pinctrl-0 = <&pinctrl_emdio>;
 	status = "okay";
 
-	ethphy1: ethernet-phy@1 {
-		reg = <1>;
+	ethphy1: ethernet-phy@0 {
+		reg = <0>;
 		interrupt-parent = <&som_gpio_expander>;
 		interrupts = <11 IRQ_TYPE_EDGE_FALLING>;
 		ti,rx-internal-delay = <DP83867_RGMIIDCTL_2_00_NS>;
