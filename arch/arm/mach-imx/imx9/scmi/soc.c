@@ -979,13 +979,14 @@ enum env_location env_get_location(enum env_operation op, int prio)
 	if (prio)
 		return env_loc;
 
+	if (IS_ENABLED(CONFIG_ENV_IS_NOWHERE))
+		env_loc = ENVL_NOWHERE;
+
 	switch (dev) {
-#if defined(CONFIG_ENV_IS_IN_SPI_FLASH)
 	case QSPI_BOOT:
-		env_loc = ENVL_SPI_FLASH;
+		if (IS_ENABLED(CONFIG_ENV_IS_IN_SPI_FLASH))
+			env_loc = ENVL_SPI_FLASH;
 		break;
-#endif
-#if defined(CONFIG_ENV_IS_IN_MMC)
 	case SD1_BOOT:
 	case SD2_BOOT:
 	case SD3_BOOT:
@@ -993,13 +994,14 @@ enum env_location env_get_location(enum env_operation op, int prio)
 	case MMC2_BOOT:
 	case MMC3_BOOT:
 	case FLEXSPI_NAND_BOOT:
-		env_loc =  ENVL_MMC;
+		if (IS_ENABLED(CONFIG_ENV_IS_IN_MMC))
+			env_loc =  ENVL_MMC;
 		break;
-#endif
 	default:
-#if defined(CONFIG_ENV_IS_NOWHERE)
-		env_loc = ENVL_NOWHERE;
-#endif
+		if (IS_ENABLED(CONFIG_ENV_IS_IN_SPI_FLASH))
+			env_loc = ENVL_SPI_FLASH;
+		else if (IS_ENABLED(CONFIG_ENV_IS_IN_MMC))
+			env_loc = ENVL_MMC;
 		break;
 	}
 
