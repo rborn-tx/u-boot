@@ -19,6 +19,17 @@
 &gpio1 {
 	reg = <0 0x47400000 0 0x1000>, <0 0x47400040 0 0x40>;
 	bootph-pre-ram;
+
+	ctrl-sleep-moci-hog {
+		bootph-pre-ram;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_ctrl_sleep_moci>;
+		gpio-hog;
+		/* Verdin CTRL_SLEEP_MOCI# (SODIMM 256) */
+		gpios = <14 GPIO_ACTIVE_HIGH>;
+		line-name = "CTRL_SLEEP_MOCI#";
+		output-high;
+	};
 };
 
 &som_gpio_expander {
