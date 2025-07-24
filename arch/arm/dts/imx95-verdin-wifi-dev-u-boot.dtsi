@@ -4,6 +4,10 @@
 #include "imx95-u-boot.dtsi"
 
 / {
+	sysinfo {
+		compatible = "toradex,sysinfo";
+	};
+
 	usbg2 {
 		compatible = "fsl,imx27-usb-gadget";
 		dr_mode = "peripheral";
