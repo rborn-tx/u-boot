@@ -2,6 +2,10 @@
 /* Copyright (C) 2025 Toradex */
 
 / {
+	sysinfo {
+		compatible = "toradex,sysinfo";
+	};
+
 	usbg2 {
 		compatible = "fsl,imx27-usb-gadget";
 		dr_mode = "peripheral";
