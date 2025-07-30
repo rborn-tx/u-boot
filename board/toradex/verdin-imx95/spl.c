@@ -80,6 +80,8 @@ void board_init_f(ulong dummy)
 	printf("SOC: 0x%x\n", gd->arch.soc_rev);
 	printf("LC: 0x%x\n", gd->arch.lifecycle);
 
+	disable_smmuv3();
+
 	/* Set ARM CPU freq to max rate */
 	clock_init_late();
 
