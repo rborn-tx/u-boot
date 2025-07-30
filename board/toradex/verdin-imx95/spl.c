@@ -71,6 +71,8 @@ void board_init_f(ulong dummy)
 	debug("SOC: 0x%x\n", gd->arch.soc_rev);
 	debug("LC: 0x%x\n", gd->arch.lifecycle);
 
+	disable_smmuv3();
+
 	/* Set ARM CPU freq to max rate */
 	clock_init_late();
 
