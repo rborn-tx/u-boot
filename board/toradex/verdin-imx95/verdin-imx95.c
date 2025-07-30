@@ -20,6 +20,8 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+extern int board_fix_fdt_fuse(void *fdt);
+
 static int imx9_scmi_power_domain_enable(u32 domain, bool enable)
 {
 	struct udevice *dev;
@@ -122,6 +124,15 @@ int board_phys_sdram_size(phys_size_t *size)
 
 	return 0;
 }
+
+#if IS_ENABLED(CONFIG_OF_BOARD_FIXUP)
+int board_fix_fdt(void *fdt)
+{
+	board_fix_fdt_fuse(fdt);
+
+	return 0;
+}
+#endif
 
 #if IS_ENABLED(CONFIG_OF_LIBFDT) && IS_ENABLED(CONFIG_OF_BOARD_SETUP)
 int ft_board_setup(void *blob, struct bd_info *bd)
