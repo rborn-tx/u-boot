@@ -44,6 +44,10 @@
 	bootph-pre-ram;
 };
 
+&pinctrl_ctrl_sleep_moci {
+	bootph-pre-ram;
+};
+
 &pinctrl_io_exp_int {
 	bootph-pre-ram;
 };
