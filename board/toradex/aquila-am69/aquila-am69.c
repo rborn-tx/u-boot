@@ -12,6 +12,7 @@
 #include <dm.h>
 #include <env.h>
 #include <fdt_support.h>
+#include <i2c.h>
 #include <spl.h>
 
 #include "../common/tdx-common.h"
@@ -212,4 +213,43 @@ void spl_board_init(void)
 		writel(readl(CTRL_MMR_CFG0_MCU_CLKOUT0_CTRL) |
 		       MCU_CLKOUT0_CTRL_CLK_EN,
 		       CTRL_MMR_CFG0_MCU_CLKOUT0_CTRL);
+}
+
+#define PMIC_I2C_ADDRESS 0x48
+
+/*
+ * Detect PCB revision based on the PMIC configuration in the NVM.
+ * If buck5 voltage is 0.85V we are running on a PCB v1.0
+ */
+static void detect_board_variant(void)
+{
+	struct udevice *dev;
+	uint8_t data;
+	int err;
+
+	env_set("variant", "");
+
+	err = i2c_get_chip_for_busnum(0, PMIC_I2C_ADDRESS, 1, &dev);
+	if (err) {
+		printf("%s: Cannot find PMIC I2C chip\n", __func__);
+		return;
+	}
+
+	/* BUCK5_VOUT_1 Register (Offset = 16h) */
+	err = dm_i2c_read(dev, 0x16, &data, 1);
+	if (err) {
+		printf("%s: Cannot read from PMIC I2C chip\n", __func__);
+		return;
+	}
+
+	/* BUCK5_VSET[01] == 0x41 -> 0.85V */
+	if (data == 0x41)
+		env_set("variant", "-v1.0");
+}
+
+int board_late_init(void)
+{
+	detect_board_variant();
+
+	return 0;
 }
