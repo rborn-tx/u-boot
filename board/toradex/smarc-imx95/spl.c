@@ -25,24 +25,6 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #define EC_I2C_BUS 3
 
-#define GPIO1_PCNS_ADDR			(GPIO1_BASE_ADDR + 0x10)
-#define GPIO1_ICNS_ADDR			(GPIO1_BASE_ADDR + 0x14)
-#define GPIO1_PCNP_ADDR			(GPIO1_BASE_ADDR + 0x18)
-#define GPIO1_ICNP_ADDR			(GPIO1_BASE_ADDR + 0x1C)
-
-/* Defines to encode the GPIO1 access protection */
-#define GPIO_PCNS_I2C_GP_CK		(0x4UL)
-#define GPIO_PCNS_I2C_GP_DAT		(0x8UL)
-#define GPIO_PCNS_PMIC_RTC_IRQ_N	(0x400UL)
-#define GPIO_PCNS_EC_MCU_INT		(0x800UL)
-#define GPIO_PCNS_CTRL_IO_EXP_INT_B	(0x4000UL)
-
-#define GPIO_PCNP_I2C_GP_CK		(0x4UL)
-#define GPIO_PCNP_I2C_GP_DAT		(0x8UL)
-#define GPIO_PCNP_PMIC_RTC_IRQ_N	(0x400UL)
-#define GPIO_PCNP_EC_MCU_INT		(0x800UL)
-#define GPIO_PCNP_CTRL_IO_EXP_INT_B	(0x4000UL)
-
 int spl_board_boot_device(enum boot_device boot_dev_spl)
 {
 	switch (boot_dev_spl) {
@@ -59,28 +41,6 @@ int spl_board_boot_device(enum boot_device boot_dev_spl)
 	default:
 		return BOOT_DEVICE_NONE;
 	}
-}
-
-void spl_board_prepare_for_boot(void)
-{
-	/*
-	 * Configure non-secure, non-privileged access to
-	 * GPIO1 registers and interrupts
-	 */
-	writel(GPIO_PCNS_I2C_GP_CK |
-	       GPIO_PCNS_I2C_GP_DAT |
-	       GPIO_PCNS_PMIC_RTC_IRQ_N |
-	       GPIO_PCNS_EC_MCU_INT |
-	       GPIO_PCNS_CTRL_IO_EXP_INT_B,
-	       GPIO1_PCNS_ADDR);
-	writel(0x1, GPIO1_ICNS_ADDR);
-	writel(GPIO_PCNP_I2C_GP_CK |
-	       GPIO_PCNP_I2C_GP_DAT |
-	       GPIO_PCNP_PMIC_RTC_IRQ_N |
-	       GPIO_PCNP_EC_MCU_INT |
-	       GPIO_PCNP_CTRL_IO_EXP_INT_B,
-	       GPIO1_PCNP_ADDR);
-	writel(0x1, GPIO1_ICNP_ADDR);
 }
 
 static void ec_boot_notify(void)
