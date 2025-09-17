@@ -23,28 +23,6 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#define GPIO1_PCNS_ADDR			(GPIO1_BASE_ADDR + 0x10)
-#define GPIO1_ICNS_ADDR			(GPIO1_BASE_ADDR + 0x14)
-#define GPIO1_PCNP_ADDR			(GPIO1_BASE_ADDR + 0x18)
-#define GPIO1_ICNP_ADDR			(GPIO1_BASE_ADDR + 0x1C)
-
-/* Defines to encode the GPIO1 access protection */
-#define GPIO_PCNS_CTRL_I2C_SCL		(0x4UL)
-#define GPIO_PCNS_CTRL_I2C_SDA		(0x8UL)
-#define GPIO_PCNS_CTRL_WAKE1_MICO_N	(0x400UL)
-#define GPIO_PCNS_PMIC_EN_WIFI		(0x800UL)
-#define GPIO_PCNS_ETH_2_RGMII_INT_N	(0x1000UL)
-#define GPIO_PCNS_IO_EXP_INT_N		(0x2000UL)
-#define GPIO_PCNS_CTRL_SLEEP_MOCI_N	(0x4000UL)
-
-#define GPIO_PCNP_CTRL_I2C_SCL		(0x4UL)
-#define GPIO_PCNP_CTRL_I2C_SDA		(0x8UL)
-#define GPIO_PCNP_CTRL_WAKE1_MICO_N	(0x400UL)
-#define GPIO_PCNP_PMIC_EN_WIFI		(0x800UL)
-#define GPIO_PCNP_ETH_2_RGMII_INT_N	(0x1000UL)
-#define GPIO_PCNP_IO_EXP_INT_N		(0x2000UL)
-#define GPIO_PCNP_CTRL_SLEEP_MOCI_N	(0x4000UL)
-
 int spl_board_boot_device(enum boot_device boot_dev_spl)
 {
 	switch (boot_dev_spl) {
@@ -70,32 +48,6 @@ void spl_board_init(void)
 	ret = ele_start_rng();
 	if (ret)
 		printf("Fail to start RNG: %d\n", ret);
-}
-
-void spl_board_prepare_for_boot(void)
-{
-	/*
-	 * Configure non-secure, non-privileged access to
-	 * GPIO1 registers and interrupts
-	 */
-	writel(GPIO_PCNS_CTRL_I2C_SCL |
-	       GPIO_PCNS_CTRL_I2C_SDA |
-	       GPIO_PCNS_CTRL_WAKE1_MICO_N |
-	       GPIO_PCNS_PMIC_EN_WIFI |
-	       GPIO_PCNS_ETH_2_RGMII_INT_N |
-	       GPIO_PCNS_IO_EXP_INT_N |
-	       GPIO_PCNS_CTRL_SLEEP_MOCI_N,
-	       GPIO1_PCNS_ADDR);
-	writel(0x1, GPIO1_ICNS_ADDR);
-	writel(GPIO_PCNP_CTRL_I2C_SCL |
-	       GPIO_PCNP_CTRL_I2C_SDA |
-	       GPIO_PCNP_CTRL_WAKE1_MICO_N |
-	       GPIO_PCNP_PMIC_EN_WIFI |
-	       GPIO_PCNP_ETH_2_RGMII_INT_N |
-	       GPIO_PCNP_IO_EXP_INT_N |
-	       GPIO_PCNP_CTRL_SLEEP_MOCI_N,
-	       GPIO1_PCNP_ADDR);
-	writel(0x1, GPIO1_ICNP_ADDR);
 }
 
 void board_init_f(ulong dummy)
