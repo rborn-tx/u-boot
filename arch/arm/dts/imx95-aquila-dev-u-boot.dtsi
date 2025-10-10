@@ -1,0 +1,48 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+/* Copyright (C) 2025 Toradex */
+
+/ {
+	sysinfo {
+		compatible = "toradex,sysinfo";
+	};
+};
+
+&gpio1 {
+	reg = <0 0x47400000 0 0x1000>, <0 0x47400040 0 0x40>;
+};
+
+&lpuart1 {
+	clocks = <&scmi_clk IMX95_CLK_LPUART1>, <&scmi_clk IMX95_CLK_LPUART1>;
+	clock-names = "ipg", "per";
+	bootph-pre-ram;
+};
+
+&pinctrl_uart1 {
+	bootph-pre-ram;
+};
+
+&pinctrl_usdhc1 {
+	bootph-pre-ram;
+};
+
+&pinctrl_usdhc1_200mhz {
+	bootph-pre-ram;
+};
+
+&usb2 {
+	/delete-property/power-domains;
+};
+
+&usb3 {
+	bootph-pre-ram;
+	/delete-property/power-domains;
+};
+
+&usb3_dwc3 {
+	bootph-pre-ram;
+	compatible = "fsl,imx95a-dwc3", "fsl,imx8mq-dwc3", "snps,dwc3";
+};
+
+&usdhc1 {
+	bootph-pre-ram;
+};
