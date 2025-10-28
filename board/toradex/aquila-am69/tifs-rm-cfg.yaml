@@ -1,8 +1,7 @@
-# SPDX-License-Identifier: GPL-2.0
+# SPDX-License-Identifier: GPL-2.0+
+# Copyright (C) 2022-2025 Texas Instruments Incorporated - https://www.ti.com/
 #
-# Copyright 2024 Toradex
-#
-# Resource management configuration for AM69
+# Resource management configuration for J784S4
 #
 
 ---
@@ -250,49 +249,49 @@ tifs-rm-cfg:
     resasg_entries:
         -
             start_resource: 16
-            num_resource: 16
+            num_resource: 32
             type: 17998
-            host_id: 12
-            reserved: 0
-        -
-            start_resource: 32
-            num_resource: 16
-            type: 17998
-            host_id: 35
-            reserved: 0
-        -
-            start_resource: 0
-            num_resource: 8
-            type: 17999
-            host_id: 12
-            reserved: 0
-        -
-            start_resource: 8
-            num_resource: 8
-            type: 17999
-            host_id: 35
-            reserved: 0
-        -
-            start_resource: 0
-            num_resource: 16
-            type: 18017
             host_id: 12
             reserved: 0
         -
             start_resource: 16
+            num_resource: 32
+            type: 17998
+            host_id: 35
+            reserved: 0
+        -
+            start_resource: 0
             num_resource: 16
+            type: 17999
+            host_id: 12
+            reserved: 0
+        -
+            start_resource: 0
+            num_resource: 16
+            type: 17999
+            host_id: 35
+            reserved: 0
+        -
+            start_resource: 0
+            num_resource: 32
+            type: 18017
+            host_id: 12
+            reserved: 0
+        -
+            start_resource: 0
+            num_resource: 32
             type: 18017
             host_id: 35
             reserved: 0
         -
             start_resource: 0
-            num_resource: 8
+            num_resource: 16
             type: 18018
             host_id: 12
             reserved: 0
         -
-            start_resource: 8
-            num_resource: 8
+            start_resource: 0
+            num_resource: 16
             type: 18018
             host_id: 35
             reserved: 0
