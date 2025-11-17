@@ -1424,6 +1424,10 @@ static int dwc3_gadget_run_stop(struct dwc3 *dwc, int is_on, int suspend)
 
 	dwc3_writel(dwc->regs, DWC3_DCTL, reg);
 
+#if defined(CONFIG_TARGET_AQUILA_IMX95)
+	mdelay(6);
+#endif
+
 	do {
 		reg = dwc3_readl(dwc->regs, DWC3_DSTS);
 		if (is_on) {
