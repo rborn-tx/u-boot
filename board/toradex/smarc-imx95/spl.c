@@ -2,8 +2,8 @@
 /* Copyright (C) 2025 Toradex */
 
 #include <asm/arch/clock.h>
-#include <asm/arch/mu.h>
 #include <asm/arch/sys_proto.h>
+#include <asm/arch-imx9/mu.h>
 #include <asm/mach-imx/boot_mode.h>
 #include <asm/mach-imx/ele_api.h>
 #include <asm/sections.h>
@@ -111,6 +111,9 @@ void board_init_f(ulong dummy)
 
 	debug("SOC: 0x%x\n", gd->arch.soc_rev);
 	debug("LC: 0x%x\n", gd->arch.lifecycle);
+
+	/* Set ARM CPU freq to max rate */
+	clock_init_late();
 
 	ec_boot_notify();
 	get_reset_reason(true, false);

@@ -1,12 +1,50 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /* Copyright (C) 2025 Toradex */
 
+#include <../dts/upstream/src/arm64/freescale/imx95-power.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/sys_proto.h>
+#include <asm/global_data.h>
+#include <asm/io.h>
+#include <dm/uclass.h>
+#include <dwc3-uboot.h>
 #include <fdt_support.h>
 #include <init.h>
+#include <linux/bitfield.h>
+#include <linux/delay.h>
+#include <scmi_protocols.h>
+#include <usb.h>
 
 #include "../common/tdx-cfg-block.h"
+
+DECLARE_GLOBAL_DATA_PTR;
+
+static int imx9_scmi_power_domain_enable(u32 domain, bool enable)
+{
+	struct udevice *dev;
+	int ret;
+
+	ret = uclass_get_device_by_name(UCLASS_CLK, "protocol@14", &dev);
+	if (ret)
+		return ret;
+
+	return scmi_pwd_state_set(dev, 0, domain, enable ? 0 : BIT(30));
+}
+
+static void netc_init(void)
+{
+	int ret;
+
+	ret = imx9_scmi_power_domain_enable(IMX95_PD_NETC, true);
+	if (ret) {
+		printf("%s: Failed to enable PD NETC for Ethernet: %d\n", __func__, ret);
+		return;
+	}
+
+	set_clk_netc(ENET_125MHZ);
+
+	pci_init();
+}
 
 int board_early_init_f(void)
 {
@@ -14,6 +52,34 @@ int board_early_init_f(void)
 	init_uart_clk(0);
 
 	return 0;
+}
+
+int board_init(void)
+{
+	int ret;
+
+	ret = imx9_scmi_power_domain_enable(IMX95_PD_HSIO_TOP, true);
+	if (ret) {
+		printf("%s: Failed to enable PD HSIO for USB: %d\n", __func__, ret);
+		return ret;
+	}
+
+	netc_init();
+
+	return 0;
+}
+
+void board_quiesce_devices(void)
+{
+	int ret = 0;
+
+	ret = imx9_scmi_power_domain_enable(IMX95_PD_HSIO_TOP, false);
+	if (ret)
+		printf("%s: Failed to disable PD HSIO for USB: %d\n", __func__, ret);
+
+	ret = imx9_scmi_power_domain_enable(IMX95_PD_NETC, false);
+	if (ret)
+		printf("%s: Failed to disable PD NETC for Ethernet: %d\n", __func__, ret);
 }
 
 int board_phys_sdram_size(phys_size_t *size)
