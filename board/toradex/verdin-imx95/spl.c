@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /* Copyright (C) 2025 Toradex */
 
-#include <asm/arch/ccm_regs.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/sys_proto.h>
 #include <asm/arch-imx9/mu.h>
@@ -14,9 +13,6 @@
 #include <hang.h>
 #include <i2c.h>
 #include <init.h>
-#include <log.h>
-#include <scmi_agent.h>
-#include <scmi_protocols.h>
 #include <spl.h>
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -32,8 +28,6 @@ int spl_board_boot_device(enum boot_device boot_dev_spl)
 		return BOOT_DEVICE_MMC2;
 	case USB_BOOT:
 		return BOOT_DEVICE_BOARD;
-	case QSPI_BOOT:
-		return BOOT_DEVICE_SPI;
 	default:
 		return BOOT_DEVICE_NONE;
 	}
@@ -55,7 +49,7 @@ void board_init_f(ulong dummy)
 	/* Clear the BSS. */
 	memset(__bss_start, 0, __bss_end - __bss_start);
 
-	if (IS_ENABLED(CONFIG_SPL_RECOVER_DATA_SECTION) && IS_ENABLED(CONFIG_SPL_BUILD))
+	if (IS_ENABLED(CONFIG_SPL_RECOVER_DATA_SECTION))
 		spl_save_restore_data();
 
 	timer_init();
@@ -74,11 +68,13 @@ void board_init_f(ulong dummy)
 
 	preloader_console_init();
 
-	printf("SOC: 0x%x\n", gd->arch.soc_rev);
-	printf("LC: 0x%x\n", gd->arch.lifecycle);
+	debug("SOC: 0x%x\n", gd->arch.soc_rev);
+	debug("LC: 0x%x\n", gd->arch.lifecycle);
 
 	/* Set ARM CPU freq to max rate */
 	clock_init_late();
+
+	get_reset_reason(true, false);
 
 	board_init_r(NULL, 0);
 }
