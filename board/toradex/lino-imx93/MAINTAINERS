@@ -1,0 +1,12 @@
+Lino iMX93
+F:	arch/arm/dts/imx93-imx91-lino-common.dtsi
+F:	arch/arm/dts/imx93-imx91-lino-verdin-common.dtsi
+F:	arch/arm/dts/imx93-imx91-lino-verdin-dev-common.dtsi
+F:	arch/arm/dts/imx93-lino-verdin-dev.dts
+F:	arch/arm/dts/imx93-lino.dtsi
+F:	board/toradex/lino-imx93/
+F:	configs/lino-imx93_defconfig
+F:	include/configs/lino-imx93.h
+M:	Francesco Dolcini <francesco.dolcini@toradex.com>
+S:	Maintained
+W:	https://www.toradex.com/computer-on-modules/lino-arm-family/nxp-imx93

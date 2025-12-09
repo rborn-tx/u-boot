@@ -1,0 +1,96 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+/*
+ * Copyright (C) 2025 Toradex
+ *
+ * Lino iMX93 SoM
+ *
+ * https://www.toradex.com/computer-on-modules/lino-arm-family/nxp-imx93
+ */
+
+#include "imx93-pinfunc.h"
+#include "imx93-imx91-lino-common.dtsi"
+
+&iomuxc {
+	/* Lino ETH MDIO */
+	pinctrl_mdio: eqosmdiogrp {
+		fsl,pins = <MX93_PAD_ENET1_MDC__ENET_QOS_MDC	0x1fe>, /* Lino P69 */
+			   <MX93_PAD_ENET1_MDIO__ENET_QOS_MDIO	0x1fe>; /* Lino P67 */
+	};
+
+	/* Lino ETH_1 RGMII */
+	pinctrl_eth1: eqosgrp {
+		fsl,pins = <MX93_PAD_ENET1_RD0__ENET_QOS_RGMII_RD0			0x1fe>, /* Lino P77 */
+			   <MX93_PAD_ENET1_RD1__ENET_QOS_RGMII_RD1			0x1fe>, /* Lino P79 */
+			   <MX93_PAD_ENET1_RD2__ENET_QOS_RGMII_RD2			0x1fe>, /* Lino P81 */
+			   <MX93_PAD_ENET1_RD3__ENET_QOS_RGMII_RD3			0x1fe>, /* Lino P83 */
+			   <MX93_PAD_ENET1_RXC__CCM_ENET_QOS_CLOCK_GENERATE_RX_CLK	0x1fe>, /* Lino P73 */
+			   <MX93_PAD_ENET1_RX_CTL__ENET_QOS_RGMII_RX_CTL		0x1fe>, /* Lino P75 */
+			   <MX93_PAD_ENET1_TD0__ENET_QOS_RGMII_TD0			0x1fe>, /* Lino P97 */
+			   <MX93_PAD_ENET1_TD1__ENET_QOS_RGMII_TD1			0x1fe>, /* Lino P95 */
+			   <MX93_PAD_ENET1_TD2__ENET_QOS_RGMII_TD2			0x1fe>, /* Lino P93 */
+			   <MX93_PAD_ENET1_TD3__ENET_QOS_RGMII_TD3			0x1fe>, /* Lino P91 */
+			   <MX93_PAD_ENET1_TXC__CCM_ENET_QOS_CLOCK_GENERATE_TX_CLK	0x1fe>, /* Lino P89 */
+			   <MX93_PAD_ENET1_TX_CTL__ENET_QOS_RGMII_TX_CTL		0x1fe>; /* Lino P85 */
+	};
+
+	/* Lino ETH_1 Interrupt */
+	pinctrl_eth1_int: gpio1io10grp {
+		fsl,pins = <MX93_PAD_PDM_BIT_STREAM1__GPIO1_IO10	0x139e>; /* Lino P65 */
+
+	};
+
+	/* On-module GPIO_EXP_INT# */
+	pinctrl_gpio_exp_int: gpio4io29grp {
+		fsl,pins = <MX93_PAD_CCM_CLKO4__GPIO4_IO29	0x139e>; /* GPIO_EXP_INT# */
+
+	};
+
+	/* Lino I2C_1 */
+	pinctrl_i2c1: lpi2c1grp {
+		fsl,pins = <MX93_PAD_I2C1_SCL__LPI2C1_SCL	0x40000b9e>, /* Lino P18 */
+			   <MX93_PAD_I2C1_SDA__LPI2C1_SDA	0x40000b9e>; /* Lino P16 */
+	};
+
+	/* Lino I2C_1 as GPIO */
+	pinctrl_i2c1_gpio: lpi2c1gpiogrp {
+		fsl,pins = <MX93_PAD_I2C1_SCL__GPIO1_IO00	0x40000b9e>, /* Lino P18 */
+			   <MX93_PAD_I2C1_SDA__GPIO1_IO01	0x40000b9e>; /* Lino P16 */
+	};
+
+	/* On-module PMIC I2C */
+	pinctrl_pmic_i2c: lpi2c2grp {
+		fsl,pins = <MX93_PAD_I2C2_SCL__LPI2C2_SCL	0x40000b9e>, /* PMIC_I2C_SCL */
+			   <MX93_PAD_I2C2_SDA__LPI2C2_SDA	0x40000b9e>; /* PMIC_I2C_SDA */
+	};
+
+	/* On-module PMIC I2C as GPIO */
+	pinctrl_pmic_i2c_gpio: lpi2c2gpiogrp {
+		fsl,pins = <MX93_PAD_I2C2_SCL__GPIO1_IO02	0x40000b9e>, /* PMIC_I2C_SCL */
+			   <MX93_PAD_I2C2_SDA__GPIO1_IO03	0x40000b9e>; /* PMIC_I2C_SDA */
+	};
+
+	/* Linux UART_3 */
+	pinctrl_uart3: uart1grp {
+		fsl,pins = <MX93_PAD_UART1_RXD__LPUART1_RX	0x39e>, /* Lino P17 */
+			   <MX93_PAD_UART1_TXD__LPUART1_TX	0x39e>; /* Lino P19 */
+	};
+
+	/* On-module eMMC */
+	pinctrl_usdhc1: usdhc1grp {
+		fsl,pins = <MX93_PAD_SD1_CLK__USDHC1_CLK	0x5fe>,      /* eMMC_CLK    */
+			   <MX93_PAD_SD1_CMD__USDHC1_CMD	0x400013fe>, /* eMMC_CMD    */
+			   <MX93_PAD_SD1_DATA0__USDHC1_DATA0	0x400013fe>, /* eMMC_DATA0  */
+			   <MX93_PAD_SD1_DATA1__USDHC1_DATA1	0x400013fe>, /* eMMC_DATA1  */
+			   <MX93_PAD_SD1_DATA2__USDHC1_DATA2	0x400013fe>, /* eMMC_DATA2  */
+			   <MX93_PAD_SD1_DATA3__USDHC1_DATA3	0x400013fe>, /* eMMC_DATA3  */
+			   <MX93_PAD_SD1_DATA4__USDHC1_DATA4	0x400013fe>, /* eMMC_DATA4  */
+			   <MX93_PAD_SD1_DATA5__USDHC1_DATA5	0x400013fe>, /* eMMC_DATA5  */
+			   <MX93_PAD_SD1_DATA6__USDHC1_DATA6	0x400013fe>, /* eMMC_DATA6  */
+			   <MX93_PAD_SD1_DATA7__USDHC1_DATA7	0x400013fe>, /* eMMC_DATA7  */
+			   <MX93_PAD_SD1_STROBE__USDHC1_STROBE	0x1580>;     /* eMMC_STROBE */
+	};
+
+	pinctrl_wdog: wdoggrp {
+		fsl,pins = <MX93_PAD_WDOG_ANY__WDOG1_WDOG_ANY 0x31e>; /* PMIC_WDOG_B */
+	};
+};

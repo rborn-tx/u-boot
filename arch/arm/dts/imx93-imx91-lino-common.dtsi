@@ -1,0 +1,226 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+/*
+ * Copyright (C) 2025 Toradex
+ *
+ * Lino iMX93/iMX91 SoM
+ *
+ * https://www.toradex.com/computer-on-modules/lino-arm-family/nxp-imx93
+ * https://www.toradex.com/computer-on-modules/lino-arm-family/nxp-imx91
+ */
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+
+/ {
+	aliases {
+		i2c0 = &lpi2c2;
+		i2c1 = &lpi2c1;
+		ethernet0 = &eqos;
+		mmc0 = &usdhc1;
+		serial2 = &lpuart1;
+	};
+
+	chosen {
+		stdout-path = &lpuart1;
+	};
+
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		// TODO: move to 0x87de0000 (below 256MB)
+		ele_reserved: memory@a4120000 {
+			compatible = "shared-dma-pool";
+			reg = <0 0xa4120000 0 0x100000>;
+			no-map;
+		};
+	};
+
+	reg_usb1_vbus: regulator-usb1-vbus {
+		compatible = "regulator-fixed";
+		/* Lino USB_1_EN (P27) */
+		gpios = <&som_gpio_expander 0 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		regulator-max-microvolt = <5000000>;
+		regulator-min-microvolt = <5000000>;
+		regulator-name = "USB_1_EN";
+		startup-delay-us = <20000>;
+	};
+};
+
+&ele_fw2 {
+	memory-region = <&ele_reserved>;
+};
+
+/* Lino ETH_1 */
+&eqos {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_mdio>, <&pinctrl_eth1>;
+
+	mdio: mdio {
+		compatible = "snps,dwmac-mdio";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		status = "disabled";
+	};
+};
+
+/* Lino I2C_1 */
+&lpi2c1 {
+	pinctrl-names = "default", "gpio";
+	pinctrl-0 = <&pinctrl_i2c1>;
+	pinctrl-1 = <&pinctrl_i2c1_gpio>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+	clock-frequency = <100000>;
+	scl-gpios = <&gpio1 0 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
+	sda-gpios = <&gpio1 1 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
+	single-master;
+};
+
+/* On-module I2C - PMIC_I2C */
+&lpi2c2 {
+	pinctrl-names = "default", "gpio";
+	pinctrl-0 = <&pinctrl_pmic_i2c>;
+	pinctrl-1 = <&pinctrl_pmic_i2c_gpio>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+	clock-frequency = <400000>;
+	scl-gpios = <&gpio1 2 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
+	sda-gpios = <&gpio1 3 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
+	single-master;
+	status = "okay";
+
+	pmic@32 {
+		compatible = "nxp,pf9453";
+		reg = <0x32>;
+		interrupt-parent = <&som_gpio_expander>;
+		interrupts = <5 IRQ_TYPE_EDGE_FALLING>;
+
+		regulators {
+			BUCK1 {
+				regulator-always-on;
+				regulator-boot-on;
+				regulator-name = "+V1.1_DDR (PMIC BUCK1)";
+				regulator-max-microvolt = <1100000>;
+				regulator-min-microvolt = <1100000>;
+			};
+
+			reg_vdd_soc: BUCK2 {
+				regulator-always-on;
+				regulator-boot-on;
+				regulator-name = "+VDD_SOC (PMIC BUCK2)";
+				regulator-max-microvolt = <950000>;
+				regulator-min-microvolt = <612500>;
+				regulator-ramp-delay = <12500>;
+			};
+
+			reg_1v8: BUCK3 {
+				regulator-always-on;
+				regulator-boot-on;
+				regulator-name = "+V1.8 / +V1.8_ANA (PMIC BUCK3)";
+				regulator-max-microvolt = <1800000>;
+				regulator-min-microvolt = <1800000>;
+			};
+
+			reg_3v3: BUCK4 {
+				regulator-always-on;
+				regulator-boot-on;
+				regulator-name = "+V3.3 (PMIC BUCK4)";
+				regulator-max-microvolt = <3300000>;
+				regulator-min-microvolt = <3300000>;
+			};
+
+			reg_sd_3v3_1v8: LDO1 {
+				regulator-always-on;
+				regulator-boot-on;
+				regulator-name = "+V3.3_1.8_SD (PMIC LDO1)";
+				regulator-max-microvolt = <3300000>;
+				regulator-min-microvolt = <1800000>;
+			};
+
+			LDO2 {
+				regulator-always-on;
+				regulator-boot-on;
+				regulator-name = "+V0.8_ANA (PMIC LDO2)";
+				regulator-max-microvolt = <800000>;
+				regulator-min-microvolt = <800000>;
+			};
+
+			LDO_SNVS {
+				regulator-always-on;
+				regulator-boot-on;
+				regulator-name = "+V1.8_BBSM (PMIC LDO_SNVS)";
+				regulator-max-microvolt = <1800000>;
+				regulator-min-microvolt = <1800000>;
+			};
+		};
+	};
+
+	som_gpio_expander: gpio@21 {
+		compatible = "nxp,pcal6408";
+		reg = <0x21>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_gpio_exp_int>;
+		#interrupt-cells = <2>;
+		interrupt-controller;
+		interrupt-parent = <&gpio4>;
+		interrupts = <29 IRQ_TYPE_LEVEL_LOW>;
+		#gpio-cells = <2>;
+		gpio-controller;
+		gpio-line-names =
+			"Lino_P27", /* Lino USB_1_EN */
+			"Lino_P61", /* Lino USB_2_EN */
+			"TPM_SPI_CS#",
+			"Lino_P29", /* Lino USB_1_OC# */
+			"Lino_P63", /* Lino USB_2_OC# */
+			"PMIC_INT#",
+			"TPM_IRQ#",
+			"Lino_S66";
+	};
+};
+
+&lpm {
+	soc-supply = <&reg_vdd_soc>;
+	status = "okay";
+};
+
+/* Lino UART_3, used as the Linux Console */
+&lpuart1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart3>;
+};
+
+/* Lino USB_1 */
+&usbotg1 {
+	dr_mode = "otg";
+	adp-disable;
+	hnp-disable;
+	srp-disable;
+	usb-role-switch;
+	disable-over-current;
+	role-switch-default-mode = "peripheral";
+	samsung,picophy-dc-vol-level-adjust = <7>;
+	samsung,picophy-pre-emp-curr-control = <3>;
+};
+
+/* On-module eMMC */
+&usdhc1 {
+	pinctrl-names = "default", "state_100mhz", "state_200mhz";
+	pinctrl-0 = <&pinctrl_usdhc1>;
+	pinctrl-1 = <&pinctrl_usdhc1>;
+	pinctrl-2 = <&pinctrl_usdhc1>;
+	bus-width = <8>;
+	non-removable;
+	no-sdio;
+	no-sd;
+	status = "okay";
+};
+
+&wdog3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_wdog>;
+	fsl,ext-reset-output;
+	status = "okay";
+};
