@@ -8,6 +8,7 @@
 #include <dt-bindings/input/input.h>
 #include <dt-bindings/net/ti-dp83867.h>
 #include "imx95.dtsi"
+#include "imx95-u-boot.dtsi"
 
 / {
 	aliases {
