@@ -5,6 +5,13 @@
 	sysinfo {
 		compatible = "toradex,sysinfo";
 	};
+
+	usbg2 {
+		compatible = "fsl,imx27-usb-gadget";
+		dr_mode = "peripheral";
+		chipidea,usb = <&usb2>;
+		bootph-pre-ram;
+	};
 };
 
 &gpio1 {
@@ -84,15 +91,24 @@
 };
 
 &usb2 {
+	bootph-pre-ram;
 	/delete-property/power-domains;
 };
 
 &usb3 {
-	status = "disabled";
+	/delete-property/power-domains;
 };
 
 &usb3_dwc3 {
-	status = "disabled";
+	compatible = "fsl,imx95a-dwc3", "fsl,imx8mq-dwc3", "snps,dwc3";
+};
+
+&usbmisc {
+	bootph-pre-ram;
+};
+
+&usbphynop {
+	bootph-pre-ram;
 };
 
 &usdhc1 {
