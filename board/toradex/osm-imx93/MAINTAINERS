@@ -1,0 +1,12 @@
+Toradex OSM iMX93
+F:	arch/arm/dts/imx93-imx91-toradex-osm-common.dtsi
+F:	arch/arm/dts/imx93-imx91-toradex-osm-dev-common.dtsi
+F:	arch/arm/dts/imx93-toradex-osm.dtsi
+F:	arch/arm/dts/imx93-toradex-osm-dev.dts
+F:	arch/arm/dts/imx93-toradex-osm-dev-u-boot.dtsi
+F:	board/toradex/osm-imx93/
+F:	configs/toradex-osm-imx93_defconfig
+F:	include/configs/toradex-osm-imx93.h
+M:	Francesco Dolcini <francesco.dolcini@toradex.com>
+S:	Maintained
+W:	https://www.toradex.com/computer-on-modules/osm-arm-family/nxp-imx93
