@@ -1,0 +1,99 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+/*
+ * Copyright (C) 2025 Toradex
+ *
+ * Toradex OSM iMX93 SoM
+ *
+ * https://www.toradex.com/computer-on-modules/osm-arm-family/nxp-imx93
+ */
+
+#include "imx93-pinfunc.h"
+#include "imx93-imx91-toradex-osm-common.dtsi"
+
+&iomuxc {
+	/* OSM ETH_MDIO */
+	pinctrl_mdio: eqosmdiogrp {
+		fsl,pins = <MX93_PAD_ENET1_MDC__ENET_QOS_MDC	0x1fe>, /* OSM T16 */
+			   <MX93_PAD_ENET1_MDIO__ENET_QOS_MDIO	0x1fe>; /* OSM T15 */
+	};
+
+	/* OSM ETH_A RGMII */
+	pinctrl_eth_a: eqosgrp {
+		fsl,pins = <MX93_PAD_ENET1_RD0__ENET_QOS_RGMII_RD0			0x1fe>, /* OSM K15 */
+			   <MX93_PAD_ENET1_RD1__ENET_QOS_RGMII_RD1			0x1fe>, /* OSM L15 */
+			   <MX93_PAD_ENET1_RD2__ENET_QOS_RGMII_RD2			0x1fe>, /* OSM N15 */
+			   <MX93_PAD_ENET1_RD3__ENET_QOS_RGMII_RD3			0x1fe>, /* OSM P15 */
+			   <MX93_PAD_ENET1_RXC__CCM_ENET_QOS_CLOCK_GENERATE_RX_CLK	0x1fe>, /* OSM R15 */
+			   <MX93_PAD_ENET1_RX_CTL__ENET_QOS_RGMII_RX_CTL		0x1fe>, /* OSM M15 */
+			   <MX93_PAD_ENET1_TD0__ENET_QOS_RGMII_TD0			0x1fe>, /* OSM H15 */
+			   <MX93_PAD_ENET1_TD1__ENET_QOS_RGMII_TD1			0x1fe>, /* OSM G15 */
+			   <MX93_PAD_ENET1_TD2__ENET_QOS_RGMII_TD2			0x1fe>, /* OSM H16 */
+			   <MX93_PAD_ENET1_TD3__ENET_QOS_RGMII_TD3			0x1fe>, /* OSM G16 */
+			   <MX93_PAD_ENET1_TXC__CCM_ENET_QOS_CLOCK_GENERATE_TX_CLK	0x1fe>, /* OSM J15 */
+			   <MX93_PAD_ENET1_TX_CTL__ENET_QOS_RGMII_TX_CTL		0x1fe>; /* OSM K16 */
+	};
+
+	/* OSM GPIO_A_0 */
+	pinctrl_gpio_a0:  gpio2io0grp {
+		fsl,pins = <MX93_PAD_GPIO_IO00__GPIO2_IO00	0x139e>; /* OSM D17 */
+	};
+
+	/* On-module CTRL_INT# */
+	pinctrl_ctrl_int: gpio3io27grp {
+		fsl,pins = <MX93_PAD_CCM_CLKO2__GPIO3_IO27	0x139e>; /* CTRL_INT# */
+	};
+
+	/* OSM GPIO_A_7 */
+	pinctrl_gpio_a7:  gpio4io15grp {
+		fsl,pins = <MX93_PAD_ENET2_MDIO__GPIO4_IO15	0x139e>; /* OSM L17 */
+	};
+
+	/* On-module PMIC I2C */
+	pinctrl_pmic_i2c: lpi2c2grp {
+		fsl,pins = <MX93_PAD_I2C2_SCL__LPI2C2_SCL	0x40000b9e>, /* PMIC_I2C_SCL */
+			   <MX93_PAD_I2C2_SDA__LPI2C2_SDA	0x40000b9e>; /* PMIC_I2C_SDA */
+	};
+
+	/* On-module PMIC I2C as GPIO */
+	pinctrl_pmic_i2c_gpio: lpi2c2gpiogrp {
+		fsl,pins = <MX93_PAD_I2C2_SCL__GPIO1_IO02	0x40000b9e>, /* PMIC_I2C_SCL */
+			   <MX93_PAD_I2C2_SDA__GPIO1_IO03	0x40000b9e>; /* PMIC_I2C_SDA */
+	};
+
+	/* OSM I2C_A */
+	pinctrl_i2c_a: lpi2c3grp {
+		fsl,pins = <MX93_PAD_GPIO_IO28__LPI2C3_SDA	0x40000b9e>, /* OSM AA16 */
+			   <MX93_PAD_GPIO_IO29__LPI2C3_SCL	0x40000b9e>; /* OSM AA15 */
+	};
+
+	/* OSM I2C_A as GPIO */
+	pinctrl_i2c_a_gpio: lpi2c3gpiogrp {
+		fsl,pins = <MX93_PAD_GPIO_IO28__GPIO2_IO28	0x40000b9e>, /* OSM AA16 */
+			   <MX93_PAD_GPIO_IO29__GPIO2_IO29	0x40000b9e>; /* OSM AA15 */
+	};
+
+	/* OSM UART_CON */
+	pinctrl_uart_con: lpuart1grp {
+		fsl,pins = <MX93_PAD_UART1_RXD__LPUART1_RX	0x39e>, /* OSM D22 */
+			   <MX93_PAD_UART1_TXD__LPUART1_TX	0x39e>; /* OSM D23 */
+	};
+
+	/* On-module eMMC */
+	pinctrl_emmc: usdhc1grp {
+		fsl,pins = <MX93_PAD_SD1_CLK__USDHC1_CLK	0x5fe>,      /* eMMC_CLK    */
+			   <MX93_PAD_SD1_CMD__USDHC1_CMD	0x400013fe>, /* eMMC_CMD    */
+			   <MX93_PAD_SD1_DATA0__USDHC1_DATA0	0x400013fe>, /* eMMC_DATA0  */
+			   <MX93_PAD_SD1_DATA1__USDHC1_DATA1	0x400013fe>, /* eMMC_DATA1  */
+			   <MX93_PAD_SD1_DATA2__USDHC1_DATA2	0x400013fe>, /* eMMC_DATA2  */
+			   <MX93_PAD_SD1_DATA3__USDHC1_DATA3	0x400013fe>, /* eMMC_DATA3  */
+			   <MX93_PAD_SD1_DATA4__USDHC1_DATA4	0x400013fe>, /* eMMC_DATA4  */
+			   <MX93_PAD_SD1_DATA5__USDHC1_DATA5	0x400013fe>, /* eMMC_DATA5  */
+			   <MX93_PAD_SD1_DATA6__USDHC1_DATA6	0x400013fe>, /* eMMC_DATA6  */
+			   <MX93_PAD_SD1_DATA7__USDHC1_DATA7	0x400013fe>, /* eMMC_DATA7  */
+			   <MX93_PAD_SD1_STROBE__USDHC1_STROBE	0x1580>;     /* eMMC_STROBE */
+	};
+
+	pinctrl_wdog: wdoggrp {
+		fsl,pins = <MX93_PAD_WDOG_ANY__WDOG1_WDOG_ANY 0x31e>; /* PMIC_WDOG_B */
+	};
+};

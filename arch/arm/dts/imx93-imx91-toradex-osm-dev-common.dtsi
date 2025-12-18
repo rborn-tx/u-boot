@@ -1,0 +1,85 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+/*
+ * Copyright (C) 2025 Toradex
+ *
+ * Toradex OSM iMX93/iMX91 SoM on OSM Development carrier board
+ *
+ * https://www.toradex.com/computer-on-modules/osm-arm-family/nxp-imx93
+ * https://www.toradex.com/computer-on-modules/osm-arm-family/nxp-imx91
+ * https://www.toradex.com/products/carrier-board/osm-development-board-kit
+ */
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/net/ti-dp83867.h>
+#include <dt-bindings/usb/pd.h>
+
+/* OSM ETH_A */
+&eqos {
+	phy-handle = <&ethphy_a>;
+	phy-mode = "rgmii-id";
+	status = "okay";
+};
+
+/* OSM I2C_A */
+&lpi2c3 {
+	status = "okay";
+
+	tcpc@52 {
+		compatible = "nxp,ptn5110", "tcpci";
+		reg = <0x52>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_gpio_a0>;
+		interrupt-parent = <&gpio2>;
+		interrupts = <0 IRQ_TYPE_LEVEL_LOW>;
+
+		connector {
+			compatible = "usb-c-connector";
+			label = "USB_A";
+			data-role = "dual";
+			power-role = "dual";
+			try-power-role = "sink";
+			self-powered;
+			source-pdos = <PDO_FIXED(5000, 3000, PDO_FIXED_USB_COMM)>;
+			sink-pdos = <PDO_FIXED(5000, 0, PDO_FIXED_USB_COMM)>;
+			op-sink-microwatt = <0>;
+
+			port {
+				usb_c_a_conn_hs: endpoint {
+					remote-endpoint = <&usb_a_hs>;
+				};
+			};
+		};
+	};
+};
+
+/* OSM UART_CON, used as the Linux Console */
+&lpuart1 {
+	status = "okay";
+};
+
+/* OSM ETH_MDIO */
+&mdio {
+	status = "okay";
+
+	ethphy_a: ethernet-phy@2 {
+		reg = <2>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_gpio_a7>;
+		interrupt-parent = <&gpio4>;
+		interrupts = <15 IRQ_TYPE_LEVEL_LOW>;
+		ti,rx-internal-delay = <DP83867_RGMIIDCTL_2_00_NS>;
+		ti,tx-internal-delay = <DP83867_RGMIIDCTL_2_00_NS>;
+	};
+
+};
+
+/* OSM USB_A */
+&usbotg1 {
+	status = "okay";
+
+	port {
+		usb_a_hs: endpoint {
+			remote-endpoint = <&usb_c_a_conn_hs>;
+		};
+	};
+};

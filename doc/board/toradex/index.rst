@@ -10,6 +10,7 @@ Toradex
    colibri_imx7
    colibri-imx8x
    lino-imx93
+   osm-imx93
    verdin-am62
    verdin-imx8mm
    verdin-imx8mp

@@ -1,0 +1,222 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+/*
+ * Copyright (C) 2025 Toradex
+ *
+ * Toradex OSM iMX93/iMX91 SoM
+ *
+ * https://www.toradex.com/computer-on-modules/osm-arm-family/nxp-imx93
+ * https://www.toradex.com/computer-on-modules/osm-arm-family/nxp-imx91
+ */
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+
+/ {
+	aliases {
+		i2c0 = &lpi2c2;
+		i2c1 = &lpi2c3;
+		ethernet0 = &eqos;
+		mmc0 = &usdhc1;
+		serial0 = &lpuart1;
+	};
+
+	chosen {
+		stdout-path = &lpuart1;
+	};
+
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		// TODO: move to 0x87de0000 (below 256MB)
+		ele_reserved: memory@a4120000 {
+			compatible = "shared-dma-pool";
+			reg = <0 0xa4120000 0 0x100000>;
+			no-map;
+		};
+	};
+};
+
+&ele_fw2 {
+	memory-region = <&ele_reserved>;
+};
+
+/* OSM ETH_A */
+&eqos {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_mdio>, <&pinctrl_eth_a>;
+
+	mdio: mdio {
+		compatible = "snps,dwmac-mdio";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		status = "disabled";
+	};
+};
+
+/* On-module I2C - PMIC_I2C */
+&lpi2c2 {
+	pinctrl-names = "default", "gpio";
+	pinctrl-0 = <&pinctrl_pmic_i2c>, <&pinctrl_ctrl_int>;
+	pinctrl-1 = <&pinctrl_pmic_i2c_gpio>, <&pinctrl_ctrl_int>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+	clock-frequency = <400000>;
+	scl-gpios = <&gpio1 2 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
+	sda-gpios = <&gpio1 3 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
+	single-master;
+	status = "okay";
+
+	som_gpio_expander: gpio@21 {
+		compatible = "nxp,pcal6416";
+		reg = <0x21>;
+		#interrupt-cells = <2>;
+		interrupt-controller;
+		interrupt-parent = <&gpio3>;
+		interrupts = <27 IRQ_TYPE_LEVEL_LOW>;
+		#gpio-cells = <2>;
+		gpio-controller;
+		gpio-line-names =
+			"OSM_D19", /* OSM GPIO_B_0 */
+			"OSM_E19", /* OSM GPIO_B_1 */
+			"OSM_F19", /* OSM GPIO_B_2 */
+			"OSM_G19", /* OSM GPIO_B_3 */
+			"OSM_H19", /* OSM GPIO_B_4 */
+			"OSM_J19", /* OSM GPIO_B_5 */
+			"OSM_K19", /* OSM GPIO_B_6 */
+			"OSM_L19", /* OSM GPIO_B_7 */
+			"OSM_D3",  /* OSM GPIO_C_0 */
+			"OSM_D4",  /* OSM GPIO_C_1 */
+			"OSM_E3",  /* OSM GPIO_C_2/CAM_B_PWR   */
+			"OSM_E4",  /* OSM GPIO_C_3/CAM_B_RST#  */
+			"OSM_F3",  /* OSM GPIO_C_4/DISP_VDD_EN */
+			"OSM_F4",  /* OSM GPIO_C_5/DISP_BL_EN  */
+			"OSM_G3",  /* OSM GPIO_C_6/CAM_A_PWR   */
+			"OSM_G4";  /* OSM GPIO_C_7/CAM_A_RST#  */
+	};
+
+	pmic@32 {
+		compatible = "nxp,pf9453";
+		reg = <0x32>;
+		interrupt-parent = <&gpio3>;
+		interrupts = <27 IRQ_TYPE_LEVEL_LOW>;
+
+		regulators {
+			BUCK1 {
+				regulator-always-on;
+				regulator-boot-on;
+				regulator-name = "+V1.1_DDR (PMIC BUCK1)";
+				regulator-max-microvolt = <1100000>;
+				regulator-min-microvolt = <1100000>;
+			};
+
+			reg_vdd_soc: BUCK2 {
+				regulator-always-on;
+				regulator-boot-on;
+				regulator-name = "+VDD_SOC (PMIC BUCK2)";
+				regulator-max-microvolt = <950000>;
+				regulator-min-microvolt = <612500>;
+				regulator-ramp-delay = <12500>;
+			};
+
+			reg_1v8: BUCK3 {
+				regulator-always-on;
+				regulator-boot-on;
+				regulator-name = "+V1.8 / +V1.8_ANA (PMIC BUCK3)";
+				regulator-max-microvolt = <1800000>;
+				regulator-min-microvolt = <1800000>;
+			};
+
+			reg_3v3: BUCK4 {
+				regulator-always-on;
+				regulator-boot-on;
+				regulator-name = "+V3.3 (PMIC BUCK4)";
+				regulator-max-microvolt = <3300000>;
+				regulator-min-microvolt = <3300000>;
+			};
+
+			reg_sd_3v3_1v8: LDO1 {
+				regulator-always-on;
+				regulator-boot-on;
+				regulator-name = "+V3.3_1.8_SD (PMIC LDO1)";
+				regulator-max-microvolt = <3300000>;
+				regulator-min-microvolt = <1800000>;
+			};
+
+			LDO2 {
+				regulator-always-on;
+				regulator-boot-on;
+				regulator-name = "+V0.8_ANA (PMIC LDO2)";
+				regulator-max-microvolt = <800000>;
+				regulator-min-microvolt = <800000>;
+			};
+
+			LDO_SNVS {
+				regulator-always-on;
+				regulator-boot-on;
+				regulator-name = "+V1.8_BBSM (PMIC LDO_SNVS)";
+				regulator-max-microvolt = <1800000>;
+				regulator-min-microvolt = <1800000>;
+			};
+		};
+	};
+
+};
+
+/* OSM I2C_A */
+&lpi2c3 {
+	pinctrl-names = "default", "gpio";
+	pinctrl-0 = <&pinctrl_i2c_a>;
+	pinctrl-1 = <&pinctrl_i2c_a_gpio>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+	clock-frequency = <100000>;
+	scl-gpios = <&gpio2 29 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
+	sda-gpios = <&gpio2 28 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
+	single-master;
+};
+
+&lpm {
+	soc-supply = <&reg_vdd_soc>;
+	status = "okay";
+};
+
+/* OSM UART_CON, used as the Linux Console */
+&lpuart1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart_con>;
+};
+
+/* OSM USB_A */
+&usbotg1 {
+	dr_mode = "otg";
+	adp-disable;
+	hnp-disable;
+	srp-disable;
+	usb-role-switch;
+	disable-over-current;
+	role-switch-default-mode = "peripheral";
+	samsung,picophy-dc-vol-level-adjust = <7>;
+	samsung,picophy-pre-emp-curr-control = <3>;
+};
+
+/* On-module eMMC */
+&usdhc1 {
+	pinctrl-names = "default", "state_100mhz", "state_200mhz";
+	pinctrl-0 = <&pinctrl_emmc>;
+	pinctrl-1 = <&pinctrl_emmc>;
+	pinctrl-2 = <&pinctrl_emmc>;
+	bus-width = <8>;
+	non-removable;
+	no-sdio;
+	no-sd;
+	status = "okay";
+};
+
+&wdog3 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_wdog>;
+	fsl,ext-reset-output;
+	status = "okay";
+};
