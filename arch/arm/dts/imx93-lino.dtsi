@@ -69,8 +69,8 @@
 			   <MX93_PAD_I2C2_SDA__GPIO1_IO03	0x40000b9e>; /* PMIC_I2C_SDA */
 	};
 
-	/* Linux UART_3 */
-	pinctrl_uart3: uart1grp {
+	/* Lino UART_3 */
+	pinctrl_uart3: lpuart1grp {
 		fsl,pins = <MX93_PAD_UART1_RXD__LPUART1_RX	0x39e>, /* Lino P17 */
 			   <MX93_PAD_UART1_TXD__LPUART1_TX	0x39e>; /* Lino P19 */
 	};
