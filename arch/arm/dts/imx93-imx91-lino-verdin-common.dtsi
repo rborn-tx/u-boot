@@ -69,7 +69,7 @@
 				gpio-line-names =
 					"SODIMM_244", /* Verdin PCIE_1_RESET#    */
 					"SODIMM_161", /* Verdin USB_1_ID         */
-					"SODIMM_255", /* Verdin CTRL_WAKE1_MICO# */
+					"SODIMM_252", /* Verdin CTRL_WAKE1_MICO# */
 					"ETH_1_INT#",
 					"CTRL_EN_WIFI",
 					"",
@@ -81,7 +81,7 @@
 					"SODIMM_44", /* Verdin I2S_2_SYNC  */
 					"SODIMM_64", /* Verdin QSPI_1_CS2# */
 					"SODIMM_66", /* Verdin QSPI_1_DQS  */
-					"SODIMM_68", /* Verdin QSPI_1_IO2  */
+					"SODIMM_60", /* Verdin QSPI_1_IO2  */
 					"SODIMM_62"; /* Verdin QSPI_1_IO3  */
 			};
 		};
