@@ -76,7 +76,7 @@
 	};
 
 	/* On-module eMMC */
-	pinctrl_usdhc1: usdhc1grp {
+	pinctrl_emmc: usdhc1grp {
 		fsl,pins = <MX93_PAD_SD1_CLK__USDHC1_CLK	0x5fe>,      /* eMMC_CLK    */
 			   <MX93_PAD_SD1_CMD__USDHC1_CMD	0x400013fe>, /* eMMC_CMD    */
 			   <MX93_PAD_SD1_DATA0__USDHC1_DATA0	0x400013fe>, /* eMMC_DATA0  */
