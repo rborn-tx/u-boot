@@ -1,0 +1,133 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+/* Copyright (C) 2025 Toradex */
+
+#include "imx93-u-boot.dtsi"
+
+/ {
+#ifdef CONFIG_OPTEE
+	firmware {
+		optee {
+			compatible = "linaro,optee-tz";
+			method = "smc";
+		};
+	};
+#endif
+	sysinfo {
+		compatible = "toradex,sysinfo";
+	};
+
+	usbg1 {
+		compatible = "fsl,imx27-usb-gadget";
+		dr_mode = "peripheral";
+		chipidea,usb = <&usbotg1>;
+	};
+
+	wdt-reboot {
+		compatible = "wdt-reboot";
+		bootph-pre-ram;
+		wdt = <&wdog3>;
+	};
+};
+
+&{/soc@0} {
+	bootph-pre-ram;
+};
+
+&{/soc@0/bus@44000000/i2c@44350000/pmic@32} {
+	bootph-pre-ram;
+};
+
+&{/soc@0/bus@44000000/i2c@44350000/pmic@32/regulators} {
+	bootph-pre-ram;
+};
+
+&A55_0 {
+	clocks = <&clk IMX93_CLK_A55_SEL>;
+};
+
+&aips1 {
+	bootph-pre-ram;
+};
+
+&aips2 {
+	bootph-pre-ram;
+};
+
+&aips3 {
+	bootph-pre-ram;
+};
+
+&clk {
+	bootph-pre-ram;
+	/delete-property/ assigned-clocks;
+	/delete-property/ assigned-clock-rates;
+	/delete-property/ assigned-clock-parents;
+};
+
+&iomuxc {
+	bootph-pre-ram;
+};
+
+&gpio3 {
+	bootph-pre-ram;
+};
+
+&lpi2c2 {
+	bootph-pre-ram;
+};
+
+&lpuart1 {
+	bootph-pre-ram;
+};
+
+&pinctrl_emmc {
+	bootph-pre-ram;
+};
+
+&pinctrl_gpio_exp_int {
+	bootph-pre-ram;
+};
+
+&pinctrl_pmic_i2c {
+	bootph-pre-ram;
+};
+
+&pinctrl_pmic_i2c_gpio {
+	bootph-pre-ram;
+};
+
+&pinctrl_uart3 {
+	bootph-pre-ram;
+};
+
+&som_gpio_expander {
+	bootph-pre-ram;
+};
+
+&usdhc1 {
+	bootph-pre-ram;
+};
+
+&usbmisc1 {
+	bootph-pre-ram;
+};
+
+&usbotg1 {
+	bootph-pre-ram;
+};
+
+&usbphynop1 {
+	bootph-pre-ram;
+};
+
+&osc_24m {
+	bootph-pre-ram;
+};
+
+&osc_32k {
+	bootph-pre-ram;
+};
+
+&s4muap {
+	bootph-pre-ram;
+};

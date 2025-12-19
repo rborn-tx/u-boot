@@ -1,0 +1,9 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+/* Copyright (C) 2025 Toradex */
+
+#include "imx93-u-boot.dtsi"
+#include "imx93-imx91-lino-verdin-dev-common-u-boot.dtsi"
+
+&A55_1 {
+	clocks = <&clk IMX93_CLK_A55_SEL>;
+};
