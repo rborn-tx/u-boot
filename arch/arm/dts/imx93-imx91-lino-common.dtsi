@@ -49,10 +49,6 @@
 	};
 };
 
-&ele_fw2 {
-	memory-region = <&ele_reserved>;
-};
-
 /* Lino ETH_1 */
 &eqos {
 	pinctrl-names = "default";
@@ -179,11 +175,6 @@
 			"TPM_IRQ#",
 			"Lino_S66";
 	};
-};
-
-&lpm {
-	soc-supply = <&reg_vdd_soc>;
-	status = "okay";
 };
 
 /* Lino UART_3, used as the Linux Console */
