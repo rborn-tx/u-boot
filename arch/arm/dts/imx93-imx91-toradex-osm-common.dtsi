@@ -38,10 +38,6 @@
 	};
 };
 
-&ele_fw2 {
-	memory-region = <&ele_reserved>;
-};
-
 /* OSM ETH_A */
 &eqos {
 	pinctrl-names = "default";
@@ -175,11 +171,6 @@
 	scl-gpios = <&gpio2 29 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
 	sda-gpios = <&gpio2 28 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
 	single-master;
-};
-
-&lpm {
-	soc-supply = <&reg_vdd_soc>;
-	status = "okay";
 };
 
 /* OSM UART_CON, used as the Linux Console */
