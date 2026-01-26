@@ -154,6 +154,7 @@
 };
 
 &usbss0 {
+	ti,modestrap-peripheral;
 	ti,usb2-only;
 	bootph-pre-ram;
 };
