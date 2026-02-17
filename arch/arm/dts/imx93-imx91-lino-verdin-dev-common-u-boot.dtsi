@@ -67,6 +67,10 @@
 	/delete-property/ assigned-clock-parents;
 };
 
+&clk_ext1 {
+	bootph-pre-ram;
+};
+
 &iomuxc {
 	bootph-pre-ram;
 	bootph-some-ram;
