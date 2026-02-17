@@ -25,6 +25,7 @@
 	wdt-reboot {
 		compatible = "wdt-reboot";
 		bootph-pre-ram;
+		bootph-some-ram;
 		wdt = <&wdog3>;
 	};
 };
@@ -51,10 +52,12 @@
 
 &aips2 {
 	bootph-pre-ram;
+	bootph-some-ram;
 };
 
 &aips3 {
 	bootph-pre-ram;
+	bootph-some-ram;
 };
 
 &clk {
@@ -66,10 +69,12 @@
 
 &iomuxc {
 	bootph-pre-ram;
+	bootph-some-ram;
 };
 
 &gpio3 {
 	bootph-pre-ram;
+	bootph-some-ram;
 };
 
 &lpi2c2 {
@@ -78,6 +83,7 @@
 
 &lpuart1 {
 	bootph-pre-ram;
+	bootph-some-ram;
 };
 
 &pinctrl_emmc {
@@ -130,4 +136,5 @@
 
 &s4muap {
 	bootph-pre-ram;
+	bootph-some-ram;
 };
