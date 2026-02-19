@@ -17,6 +17,7 @@
 		i2c1 = &lpi2c1;
 		ethernet0 = &eqos;
 		mmc0 = &usdhc1;
+		mmc1 = &usdhc2;
 		serial2 = &lpuart1;
 	};
 
@@ -35,6 +36,35 @@
 			reg = <0 0xa4120000 0 0x100000>;
 			no-map;
 		};
+	};
+
+	/* Lino SD_1 Power Supply */
+	reg_sd1_vmmc: regulator-sdhci2-vmmc {
+		compatible = "regulator-fixed";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_sd1_pwr_en>;
+		/* Lino SD_1_PWR_EN (Lino P72) */
+		gpios = <&gpio3 7 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		off-on-delay-us = <100000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-min-microvolt = <3300000>;
+		regulator-name = "+V3.3_SD";
+		startup-delay-us = <20000>;
+	};
+
+	reg_sd1_vqmmc: regulator-sdhci2-vqmmc {
+		compatible = "regulator-gpio";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_sd1_vsel>;
+		/* PMIC_SD_2_VSEL */
+		gpios = <&gpio3 19 GPIO_ACTIVE_HIGH>;
+		regulator-name = "LDO1-VSEL-SD (PMIC)";
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <3300000>;
+		states = <1800000 0x1>,
+			 <3300000 0x0>;
+		vin-supply = <&reg_sd_3v3_1v8>;
 	};
 
 	reg_usb1_vbus: regulator-usb1-vbus {
@@ -216,6 +246,18 @@
 	no-sdio;
 	no-sd;
 	status = "okay";
+};
+
+/* Lino SD_1 */
+&usdhc2 {
+	pinctrl-names = "default", "state_100mhz", "state_200mhz";
+	pinctrl-0 = <&pinctrl_sd1>, <&pinctrl_sd1_cd>;
+	pinctrl-1 = <&pinctrl_sd1>, <&pinctrl_sd1_cd>;
+	pinctrl-2 = <&pinctrl_sd1>, <&pinctrl_sd1_cd>;
+	cd-gpios = <&gpio3 0 GPIO_ACTIVE_LOW>;
+	disable-wp;
+	vmmc-supply = <&reg_sd1_vmmc>;
+	vqmmc-supply = <&reg_sd1_vqmmc>;
 };
 
 &wdog3 {

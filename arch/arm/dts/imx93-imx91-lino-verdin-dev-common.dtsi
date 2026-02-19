@@ -23,3 +23,8 @@
 &usbotg1 {
 	status = "okay";
 };
+
+/* Lino SD_1 */
+&usdhc2 {
+	status = "okay";
+};
