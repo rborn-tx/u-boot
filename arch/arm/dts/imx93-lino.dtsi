@@ -90,6 +90,31 @@
 			   <MX93_PAD_SD1_STROBE__USDHC1_STROBE	0x1580>;     /* eMMC_STROBE */
 	};
 
+	/* Lino SD_1 */
+	pinctrl_sd1: usdhc2grp {
+		fsl,pins = <MX93_PAD_SD2_CLK__USDHC2_CLK	0x5fe>,      /* Lino P68 */
+			   <MX93_PAD_SD2_CMD__USDHC2_CMD	0x400013fe>, /* Lino P66 */
+			   <MX93_PAD_SD2_DATA0__USDHC2_DATA0	0x400013fe>, /* Lino P74 */
+			   <MX93_PAD_SD2_DATA1__USDHC2_DATA1	0x400013fe>, /* Lino P76 */
+			   <MX93_PAD_SD2_DATA2__USDHC2_DATA2	0x400013fe>, /* Lino P60 */
+			   <MX93_PAD_SD2_DATA3__USDHC2_DATA3	0x400013fe>; /* Lino P64 */
+	};
+
+	/* Lino SD_1_CD# */
+	pinctrl_sd1_cd: usdhc2cdgrp {
+		fsl,pins = <MX93_PAD_SD2_CD_B__GPIO3_IO00	0x139e>; /* Lino P78 */
+	};
+
+	/* Lino SD_1_PWR_EN */
+	pinctrl_sd1_pwr_en: usdhc2pwrgrp {
+		fsl,pins = <MX93_PAD_SD2_RESET_B__GPIO3_IO07	0x139e>; /* Lino P72 */
+	};
+
+	/* On-module PMIC_SD_2_VSEL */
+	pinctrl_sd1_vsel: usdhc2vselgrp {
+		fsl,pins = <MX93_PAD_SD2_VSELECT__GPIO3_IO19	0x51e>; /* PMIC_SD_2_VSEL */
+	};
+
 	pinctrl_wdog: wdoggrp {
 		fsl,pins = <MX93_PAD_WDOG_ANY__WDOG1_WDOG_ANY 0x31e>; /* PMIC_WDOG_B */
 	};
