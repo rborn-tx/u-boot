@@ -93,6 +93,31 @@
 			   <MX93_PAD_SD1_STROBE__USDHC1_STROBE	0x1580>;     /* eMMC_STROBE */
 	};
 
+	/* OSM SDIO_A */
+	pinctrl_sdio_a: usdhc2grp {
+		fsl,pins = <MX93_PAD_SD2_CLK__USDHC2_CLK	0x5fe>,      /* OSM F21 */
+			   <MX93_PAD_SD2_CMD__USDHC2_CMD	0x400013fe>, /* OSM E20 */
+			   <MX93_PAD_SD2_DATA0__USDHC2_DATA0	0x400013fe>, /* OSM G20 */
+			   <MX93_PAD_SD2_DATA1__USDHC2_DATA1	0x400013fe>, /* OSM G21 */
+			   <MX93_PAD_SD2_DATA2__USDHC2_DATA2	0x400013fe>, /* OSM H20 */
+			   <MX93_PAD_SD2_DATA3__USDHC2_DATA3	0x400013fe>; /* OSM H21 */
+	};
+
+	/* OSM SDIO_A_CD# */
+	pinctrl_sdio_a_cd: usdhc2cdgrp {
+		fsl,pins = <MX93_PAD_SD2_CD_B__GPIO3_IO00	0x139e>; /* OSM J21 */
+	};
+
+	/* OSM SDIO_A_PWR_EN */
+	pinctrl_sdio_a_pwr_en: usdhc2pwrgrp {
+		fsl,pins = <MX93_PAD_SD2_RESET_B__GPIO3_IO07	0x139e>; /* OSM D21 */
+	};
+
+	/* On-module PMIC_SD_2_VSEL */
+	pinctrl_sdio_a_vsel: usdhc2vselgrp {
+		fsl,pins = <MX93_PAD_SD2_VSELECT__GPIO3_IO19	0x51e>; /* PMIC_SD_2_VSEL */
+	};
+
 	pinctrl_wdog: wdoggrp {
 		fsl,pins = <MX93_PAD_WDOG_ANY__WDOG1_WDOG_ANY 0x31e>; /* PMIC_WDOG_B */
 	};

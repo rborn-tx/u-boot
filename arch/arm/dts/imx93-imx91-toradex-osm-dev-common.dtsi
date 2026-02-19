@@ -83,3 +83,8 @@
 		};
 	};
 };
+
+/* OSM SDIO_A */
+&usdhc2 {
+	status = "okay";
+};
