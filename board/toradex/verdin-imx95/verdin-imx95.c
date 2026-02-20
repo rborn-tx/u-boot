@@ -69,6 +69,8 @@ int board_init(void)
 
 	netc_init();
 
+	power_on_m7("verdin-imx95");
+
 	return 0;
 }
 
