@@ -5,6 +5,7 @@
 #include <asm/arch/sys_proto.h>
 #include <asm/global_data.h>
 #include <asm/io.h>
+#include <command.h>
 #include <dt-bindings/power/fsl,imx95-power.h>
 #include <dwc3-uboot.h>
 #include <env.h>
@@ -60,6 +61,8 @@ int board_init(void)
 	}
 
 	netc_init();
+
+	power_on_m7("verdin-imx95");
 
 	return 0;
 }
