@@ -30,10 +30,9 @@
 		#size-cells = <2>;
 		ranges;
 
-		// TODO: move to 0x87de0000 (below 256MB)
-		ele_reserved: memory@a4120000 {
+		ele_reserved: memory@87d00000 {
 			compatible = "shared-dma-pool";
-			reg = <0 0xa4120000 0 0x100000>;
+			reg = <0 0x87d00000 0 0x100000>;
 			no-map;
 		};
 	};
