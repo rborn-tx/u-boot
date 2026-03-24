@@ -139,7 +139,11 @@ static const struct cmd_whitelist_entry cmd_whitelist[] = {
 	{ { "clocks" }, { CMD_CAT_CLK_DIAG } },
 	{ { "cmp", ALL }, { CMD_CAT_MEM_READ } },
 	{ { "coninfo" }, { CMD_CAT_DIAG } },
+#ifdef CONFIG_TDX_CP_PROTECTION_ALLOW_CMD
+	{ { "cp", ALL }, { CMD_CAT_MEM_READ, CMD_CAT_MEM_WRITE, CMD_CAT_NEEDED } },
+#else
 	{ { "cp", ALL }, { CMD_CAT_MEM_READ, CMD_CAT_MEM_WRITE } },
+#endif
 	{ { "cpu", ALL }, { CMD_CAT_DIAG } },
 	{ { "crc32", ALL }, { CMD_CAT_MEM_READ, CMD_CAT_MEM_WRITE } },
 	{ { "dcache", ALL }, { CMD_CAT_DCACHE_CONTROL } },
@@ -166,7 +170,11 @@ static const struct cmd_whitelist_entry cmd_whitelist[] = {
 	{ { "ext4write", ALL }, { CMD_CAT_FS_WRITE } },
 	{ { "false", ALL }, { CMD_CAT_SAFE } },
 #ifdef CONFIG_CMD_FASTBOOT
+#ifdef CONFIG_TDX_FB_PROTECTION_ALLOW_CMD
+	{ { "fastboot", ALL }, { CMD_CAT_FASTBOOT, CMD_CAT_NEEDED } },
+#else
 	{ { "fastboot", ALL }, { CMD_CAT_FASTBOOT } },
+#endif
 #endif
 	{ { "fatinfo", ALL }, { CMD_CAT_FS_DIAG } },
 	{ { "fatload", ALL }, { CMD_CAT_FS_READ, CMD_CAT_MEM_WRITE_SAFE } },
