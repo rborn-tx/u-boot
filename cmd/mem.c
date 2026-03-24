@@ -21,6 +21,9 @@
 #include <flash.h>
 #endif
 #include <hash.h>
+#ifdef CONFIG_TDX_CP_PROTECTION
+#include <lmb.h>
+#endif
 #include <log.h>
 #include <mapmem.h>
 #include <rand.h>
@@ -334,6 +337,28 @@ static int do_mem_cp(struct cmd_tbl *cmdtp, int flag, int argc,
 		puts ("Zero length ???\n");
 		return 1;
 	}
+
+#ifdef CONFIG_TDX_CP_PROTECTION
+#ifndef CONFIG_LMB
+#error TDX_CP_PROTECTION requires CONFIG_LMB to be enabled
+#endif
+	if (gd->fdt_blob) {
+		int tdx_valid_loadaddr(struct lmb *lmb, phys_addr_t base, phys_size_t size);
+		struct lmb lmb;
+
+		lmb_init_and_reserve(&lmb, gd->bd, (void *) gd->fdt_blob);
+		lmb_dump_all(&lmb);
+
+		if (!tdx_valid_loadaddr(&lmb, addr, count * (ulong) size) ||
+		    !tdx_valid_loadaddr(&lmb, dest, count * (ulong) size)) {
+			debug("Invalid source/destination address\n");
+			return 2;
+		}
+	} else {
+		eputs("## ERROR: CP protection is enabled but fdt_blob == NULL\n");
+		return 3;
+	}
+#endif
 
 	src = map_sysmem(addr, count * size);
 	dst = map_sysmem(dest, count * size);

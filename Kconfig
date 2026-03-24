@@ -815,3 +815,23 @@ config TDX_BOOTARGS_PROTECTION
 	  against information in the device-tree provided to the bootm
 	  command. Since the device-tree is supposed to come from a signed
 	  FIT image, it is expected to be a trustworthy source of information.
+
+config TDX_CP_PROTECTION
+	bool "Enable the cp command protection"
+	default n
+	depends on TDX_SECBOOT_HARDENING && TDX_LOAD_PROTECTION
+	help
+	  Enable the protection to the "cp" command, limiting to what addresses
+	  memory copy operations can be performed. To allow the "cp" command to
+	  pass the whitelist, TDX_CP_PROTECTION_ALLOW_CMD must still be set.
+
+config TDX_CP_PROTECTION_ALLOW_CMD
+	bool "Allow the execution of the cp command"
+	default n
+	depends on TDX_CP_PROTECTION
+	help
+	  Allow the execution of the "cp" command (by the whitelist feature) when
+	  that command is protected (hardened). This is aimed mainly to handling
+	  the loading of Toradex Easy Installer. If loading of the installer is
+	  not needed, this option should not be enabled so as to reduce the attack
+	  surface.
