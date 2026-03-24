@@ -66,14 +66,38 @@ static const struct {
 		.command = "erase",
 		.dispatch = CONFIG_IS_ENABLED(FASTBOOT_FLASH, (erase), (NULL))
 	},
+#ifndef CONFIG_TDX_FB_PROTECTION
+	/*
+	 * If the Toradex Fastboot protection is enabled, disable the "boot"
+	 * command since it can be replaced by normal U-Boot commands sent
+	 * via "ucmd", with the advantage that U-Boot commands can be
+	 * restricted by the whitelisting feature.
+	 */
 	[FASTBOOT_COMMAND_BOOT] =  {
 		.command = "boot",
 		.dispatch = okay
 	},
+#endif
 	[FASTBOOT_COMMAND_CONTINUE] =  {
 		.command = "continue",
 		.dispatch = okay
 	},
+#ifndef CONFIG_TDX_FB_PROTECTION
+	/*
+	 * If the Toradex Fastboot protection is enabled:
+	 *
+	 * - Disable "reboot" - equivalent to U-Boot's "reset" - which can be
+	 *   executed via "ucmd".
+	 *
+	 * - Disable "reboot-*" commands since these are not actually
+	 *   supported and keeping them represents an unnecessary risk.
+	 *
+	 * - Disable "set_active" which is a no-op/dummy command.
+	 *
+	 * - Disable all OEM commands since those can be replaced by normal
+	 *   U-Boot commands sent via "ucmd", with the advantage that U-Boot
+	 *   commands can be restricted by the whitelisting feature.
+	 */
 	[FASTBOOT_COMMAND_REBOOT] =  {
 		.command = "reboot",
 		.dispatch = okay
@@ -118,6 +142,7 @@ static const struct {
 		.command = "oem board",
 		.dispatch = CONFIG_IS_ENABLED(FASTBOOT_OEM_BOARD, (oem_board), (NULL))
 	},
+#endif
 	[FASTBOOT_COMMAND_UCMD] = {
 		.command = "UCmd",
 		.dispatch = CONFIG_IS_ENABLED(FASTBOOT_UUU_SUPPORT, (run_ucmd), (NULL))

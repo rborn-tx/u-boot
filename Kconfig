@@ -835,3 +835,23 @@ config TDX_CP_PROTECTION_ALLOW_CMD
 	  the loading of Toradex Easy Installer. If loading of the installer is
 	  not needed, this option should not be enabled so as to reduce the attack
 	  surface.
+
+config TDX_FB_PROTECTION
+	bool "Enable the Fastboot protections"
+	default n
+	depends on TDX_SECBOOT_HARDENING && TDX_LOAD_PROTECTION
+	help
+	  Enable the protections related to Fastboot which includes placing
+	  constraints on the Fastboot protocol buffer address range and limiting
+	  the commands available via the protocol. To allow the "fastboot" command
+	  to pass the whitelist, TDX_FB_PROTECTION_ALLOW_CMD must still be set.
+
+config TDX_FB_PROTECTION_ALLOW_CMD
+	bool "Allow the execution of the fastboot command"
+	default n
+	depends on TDX_FB_PROTECTION
+	help
+	  Allow the execution of the "fastboot" command (by the whitelist feature)
+	  when that command is protected (hardened). To reduce the attack surface,
+	  this option should be enabled only when strictly required, e.g. when
+	  users want to use a bootloader having Fastboot support to flash a device.

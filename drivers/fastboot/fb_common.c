@@ -17,6 +17,12 @@
 #include <fastboot.h>
 #include <net.h>
 
+#ifdef CONFIG_TDX_FB_PROTECTION
+#include <asm/global_data.h>
+DECLARE_GLOBAL_DATA_PTR;
+#include <lmb.h>
+#endif
+
 /**
  * fastboot_buf_addr - base address of the fastboot download buffer
  */
@@ -214,6 +220,38 @@ void fastboot_set_progress_callback(void (*progress)(const char *msg))
 	fastboot_progress_callback = progress;
 }
 
+static void fastboot_constrain_buffer()
+{
+#ifdef CONFIG_TDX_FB_PROTECTION
+#ifndef CONFIG_LMB
+#error CONFIG_TDX_FB_PROTECTION requires CONFIG_LMB to be enabled
+#endif
+	bool reset_to_default = false;
+	const ulong addr = (ulong) fastboot_buf_addr;
+	const ulong size = (ulong) fastboot_buf_size;
+
+	if (gd->fdt_blob) {
+		int tdx_valid_loadaddr(struct lmb *lmb, phys_addr_t base, phys_size_t size);
+		struct lmb lmb;
+
+		lmb_init_and_reserve(&lmb, gd->bd, (void *) gd->fdt_blob);
+		lmb_dump_all(&lmb);
+
+		if (!tdx_valid_loadaddr(&lmb, addr, size))
+			reset_to_default = true;
+	} else {
+		eputs("## ERROR: Fastboot protection is enabled but fdt_blob == NULL\n");
+		reset_to_default = true;
+	}
+
+	if (reset_to_default) {
+		eputs("## WARNING: Resetting Fastboot buffer address/size to default\n");
+		fastboot_buf_addr = (void *) CONFIG_FASTBOOT_BUF_ADDR;
+		fastboot_buf_size = CONFIG_FASTBOOT_BUF_SIZE;
+	}
+#endif
+}
+
 /*
  * fastboot_init() - initialise new fastboot protocol session
  *
@@ -225,5 +263,6 @@ void fastboot_init(void *buf_addr, u32 buf_size)
 	fastboot_buf_addr = buf_addr ? buf_addr :
 				       (void *)CONFIG_FASTBOOT_BUF_ADDR;
 	fastboot_buf_size = buf_size ? buf_size : CONFIG_FASTBOOT_BUF_SIZE;
+	fastboot_constrain_buffer();
 	fastboot_set_progress_callback(NULL);
 }
