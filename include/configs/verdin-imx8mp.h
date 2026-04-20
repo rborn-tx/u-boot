@@ -28,6 +28,25 @@
 	"ramdisk_addr_r=0x50300000\0" \
 	"scriptaddr=0x50280000\0"
 
+#ifdef CONFIG_FASTBOOT_FLASH
+# ifndef CONFIG_FASTBOOT_FLASH_MMC_DEV
+#  error CONFIG_FASTBOOT_FLASH_MMC_DEV must be defined
+# endif
+#define FASTBOOT_ENV_SETTINGS \
+	"fastboot_partition_alias_all=" \
+		__stringify(CONFIG_FASTBOOT_FLASH_MMC_DEV) ".0:0\0" \
+	"fastboot_partition_alias_bootloader=" \
+		__stringify(CONFIG_FASTBOOT_FLASH_MMC_DEV) ".1:0\0" \
+	"fastboot_default_buf_addr=" \
+		__stringify(CONFIG_FASTBOOT_BUF_ADDR) "\0" \
+	"fastboot_default_buf_size=" \
+		__stringify(CONFIG_FASTBOOT_BUF_SIZE) "\0" \
+	"emmc_dev=" __stringify(CONFIG_FASTBOOT_FLASH_MMC_DEV) "\0" \
+	"emmc_ack=1\0"
+#else
+#define FASTBOOT_ENV_SETTINGS
+#endif
+
 /* Enable Distro Boot */
 #define BOOT_TARGET_DEVICES(func) \
 	func(MMC, mmc, 1) \
@@ -39,6 +58,7 @@
 #define CFG_EXTRA_ENV_SETTINGS \
 	BOOTENV \
 	MEM_LAYOUT_ENV_SETTINGS \
+	FASTBOOT_ENV_SETTINGS \
 	"boot_script_dhcp=boot.scr\0" \
 	"console=ttymxc2\0" \
 	"fdt_board=dev\0" \
